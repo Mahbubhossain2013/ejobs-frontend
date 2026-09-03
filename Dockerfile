@@ -9,6 +9,7 @@ RUN npm ci
 
 FROM base AS builder
 WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
 ARG NEXT_PUBLIC_API_URL=https://admin.ejobs.bd
 ARG NEXT_PUBLIC_APP_URL=https://ejobs.bd
 ENV NEXT_PUBLIC_API_URL=https://admin.ejobs.bd
@@ -20,6 +21,7 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PUBLIC_API_URL=https://admin.ejobs.bd
 ENV NEXT_PUBLIC_APP_URL=https://ejobs.bd
 
