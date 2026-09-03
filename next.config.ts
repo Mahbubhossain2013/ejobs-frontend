@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "https://admin.ejobs.bd";
 const cleanApiUrl = rawApiUrl.replace(/\/$/, "");
 const backendUrl = cleanApiUrl.replace(/\/api\/?$/, "");
 const apiUrl = `${backendUrl}/api`;
@@ -94,6 +94,8 @@ const nextConfig: NextConfig = {
       { source: "/storage/:path*", destination: `${backendUrl}/storage/:path*` },
       { source: "/sanctum/:path*", destination: `${backendUrl}/sanctum/:path*` },
       { source: "/cv/share/:path*", destination: `${backendUrl}/cv/share/:path*` },
+      { source: "/cv/demo/:path*", destination: `${backendUrl}/cv/demo/:path*` },
+      { source: "/cv/download/:path*", destination: `${backendUrl}/cv/download/:path*` },
     ];
   },
   async redirects() {
