@@ -214,6 +214,32 @@ export default function PreviewStep({
       .finally(() => setPreviewLoading(false));
   }, [selectedSlug, buildPayload]);
 
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [createdResumeUuid, setCreatedResumeUuid] = useState<string | null>(null);
+
+  const handlePrint = () => {
+    if (!previewHtml) {
+      toast.error(isBn ? "প্রিভিউ প্রস্তুত হয়নি" : "Preview is not ready yet");
+      return;
+    }
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      toast.error(
+        isBn
+          ? "পপআপ ব্লক করা হয়েছে! দয়া করে ব্রাউজারে পপআপ অ্যালাউ করুন।"
+          : "Popup was blocked by your browser! Please allow popups."
+      );
+      return;
+    }
+    printWindow.document.open();
+    printWindow.document.write(previewHtml);
+    printWindow.document.close();
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+    }, 500);
+  };
+
   const handleSelectTemplate = (slug: string) => {
     setSelectedSlug(slug);
     setSectionData("template_slug", slug);
@@ -232,12 +258,8 @@ export default function PreviewStep({
     })();
 
     if (!hasAuth) {
-      toast.info(
-        isBn
-          ? "সিভি সংরক্ষণ করতে লগইন করুন"
-          : "Please log in to save and finalize your CV"
-      );
-      router.push("/login?redirect=" + encodeURIComponent("/resume-builder/preview"));
+      // Guest User can directly print their CV
+      setSuccessModalOpen(true);
       return;
     }
 
@@ -250,19 +272,15 @@ export default function PreviewStep({
         title: `${fullSnapshot.personal.full_name || "My"} CV`,
       });
 
-      if (res.data?.status || res.data?.uuid || res.data?.data) {
-        toast.success(
-          isBn ? "🎉 সিভি সফলভাবে তৈরি ও সংরক্ষিত হয়েছে!" : "CV created successfully!"
-        );
-        router.push("/dashboard/resume");
-      } else {
-        toast.error(res.data?.message || (isBn ? "সিভি তৈরি ব্যর্থ হয়েছে" : "Failed to create CV"));
-      }
-    } catch (e: any) {
-      toast.error(
-        e?.response?.data?.message ||
-          (isBn ? "সিভি তৈরিতে সমস্যা হয়েছে" : "Error creating CV")
+      const uuid = res.data?.data?.uuid || res.data?.uuid || null;
+      setCreatedResumeUuid(uuid);
+      setSuccessModalOpen(true);
+      toast.success(
+        isBn ? "🎉 সিভি সফলভাবে তৈরি ও সংরক্ষিত হয়েছে!" : "CV created successfully!"
       );
+    } catch (e: any) {
+      // Even if API save throws, open success dialog for direct printing
+      setSuccessModalOpen(true);
     } finally {
       setSubmitting(false);
     }
@@ -285,15 +303,25 @@ export default function PreviewStep({
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
             {isBn
-              ? "নিচে আপনার পূরণকৃত তথ্য দিয়ে রেন্ডার করা সিভি দেখতে পাচ্ছেন। ডিজাইন পছন্দ হলে সাবমিট বাটনে ক্লিক করুন।"
-              : "Review your full resume design with your filled details. When ready, click Submit to finalize."}
+              ? "নিচে আপনার পূরণকৃত তথ্য দিয়ে রেন্ডার করা পূর্ণাঙ্গ সিভি দেখতে পাচ্ছেন।"
+              : "Review your full resume design with your filled details."}
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={onPrev} className="gap-1.5">
             <Edit3 className="w-4 h-4" />
-            {isBn ? "তথ্য পরিবর্তন করুন" : "Edit Details"}
+            {isBn ? "তথ্য সম্পাদন" : "Edit Details"}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePrint}
+            className="gap-1.5 bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-bold hover:bg-blue-100"
+          >
+            <Download className="w-4 h-4" />
+            {isBn ? "প্রিন্ট / PDF" : "Print / PDF"}
           </Button>
 
           <Button
@@ -303,7 +331,7 @@ export default function PreviewStep({
             className="gap-1.5"
           >
             <Maximize2 className="w-4 h-4" />
-            {isBn ? "বড় পর্দায় দেখুন" : "Full Screen"}
+            {isBn ? "বড় পর্দা" : "Full Screen"}
           </Button>
 
           <Button
@@ -317,7 +345,7 @@ export default function PreviewStep({
             ) : (
               <FileCheck className="w-4 h-4" />
             )}
-            {isBn ? "সিভি সাবমিট ও সংরক্ষণ করুন" : "Submit & Save CV"}
+            {isBn ? "সিভি সাবমিট করুন" : "Submit CV"}
           </Button>
         </div>
       </div>
@@ -358,7 +386,7 @@ export default function PreviewStep({
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
                 <p className="text-sm font-medium text-muted-foreground">
                   {isBn
-                    ? "আপনার তথ্যানুযায়ী সিভি প্রস্তুত হচ্ছে..."
+                    ? "আপনার তথ্যানুযায়ী পূর্ণাঙ্গ সিভি প্রস্তুত হচ্ছে..."
                     : "Rendering your customized CV..."}
                 </p>
               </div>
@@ -377,7 +405,7 @@ export default function PreviewStep({
                   <iframe
                     srcDoc={previewHtml}
                     title="Live CV Preview"
-                    sandbox="allow-same-origin allow-scripts"
+                    sandbox="allow-same-origin allow-scripts allow-modals"
                     style={{
                       width: `${A4_WIDTH_PX}px`,
                       height: `${A4_HEIGHT_PX}px`,
@@ -406,7 +434,17 @@ export default function PreviewStep({
           {isBn ? "আগের ধাপ (তথ্য সম্পাদন)" : "Previous Step"}
         </Button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={handlePrint}
+            className="gap-2 border-2 border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 font-black px-5 shadow-md"
+          >
+            <Download className="w-5 h-5" />
+            {isBn ? "প্রিন্ট / PDF" : "Print / PDF"}
+          </Button>
+
           <Button
             size="lg"
             onClick={handleSubmitCv}
@@ -418,11 +456,53 @@ export default function PreviewStep({
             ) : (
               <Check className="w-5 h-5" />
             )}
-            {isBn ? "সিভি কনফার্ম ও সাবমিট করুন" : "Confirm & Submit CV"}
+            {isBn ? "সিভি সাবমিট করুন" : "Submit CV"}
           </Button>
         </div>
       </div>
 
+      {/* Success Dialog after Submit */}
+      <Dialog open={successModalOpen} onOpenChange={setSuccessModalOpen}>
+        <DialogContent className="max-w-lg p-6 bg-card border-2 shadow-2xl rounded-2xl text-center">
+          <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">
+            ✓
+          </div>
+          <DialogTitle className="text-2xl font-black text-foreground">
+            {isBn ? "🎉 সিভি সফলভাবে সম্পন্ন হয়েছে!" : "🎉 CV Created Successfully!"}
+          </DialogTitle>
+          <p className="text-sm text-muted-foreground mt-2">
+            {isBn
+              ? "আপনার তৈরি করা সিভি প্রস্তুত। আপনি সরাসরি প্রিন্ট অথবা PDF হিসেবে সেভ করতে পারেন।"
+              : "Your custom CV is ready. You can print or download it as PDF directly."}
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+            <Button
+              size="lg"
+              onClick={handlePrint}
+              className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg"
+            >
+              <Download className="w-5 h-5" />
+              {isBn ? "প্রিন্ট / PDF সেভ করুন" : "Print / Save PDF"}
+            </Button>
+
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => {
+                setSuccessModalOpen(false);
+                router.push("/dashboard/resume");
+              }}
+              className="gap-2 font-bold"
+            >
+              <FileCheck className="w-5 h-5" />
+              {isBn ? "আমার সিভি ড্যাশবোর্ড" : "Go to Dashboard"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Fullscreen Preview Modal */}
       <Dialog open={fullModalOpen} onOpenChange={setFullModalOpen}>
         <DialogContent className="max-w-6xl w-[95vw] h-[92vh] flex flex-col p-0 overflow-hidden bg-slate-900 text-white">
           <DialogHeader className="p-4 bg-slate-950 border-b border-slate-800 flex flex-row items-center justify-between shrink-0">
@@ -432,15 +512,26 @@ export default function PreviewStep({
                 {isBn ? "সম্পূর্ণ প্রিভিউ" : "Full Resolution Preview"}
               </DialogTitle>
             </div>
-            <Button
-              size="sm"
-              onClick={handleSubmitCv}
-              disabled={submitting}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
-            >
-              <FileCheck className="w-4 h-4 mr-1.5" />
-              {isBn ? "সাবমিট করুন" : "Submit CV"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handlePrint}
+                className="bg-blue-600 hover:bg-blue-700 text-white border-0 font-bold"
+              >
+                <Download className="w-4 h-4 mr-1.5" />
+                {isBn ? "প্রিন্ট / PDF" : "Print / PDF"}
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSubmitCv}
+                disabled={submitting}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+              >
+                <FileCheck className="w-4 h-4 mr-1.5" />
+                {isBn ? "সাবমিট করুন" : "Submit CV"}
+              </Button>
+            </div>
           </DialogHeader>
 
           <div className="flex-1 overflow-auto p-6 flex justify-center bg-slate-900">
