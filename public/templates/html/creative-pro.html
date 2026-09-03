@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV - Creative Professional</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fraunces:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --cv-primary: var(--primary-color, #7c3aed); --cv-accent: #a78bfa; --cv-text: var(--text-color, #1e293b); --cv-bg: var(--bg-color, #ffffff); --cv-muted: #64748b; --cv-border: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; color: var(--cv-text); background: #f1f5f9; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { overflow: visible !important; }
+        .cv-page { width: 210mm; min-height: auto; margin: 0 auto; background: var(--cv-bg); box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+        @media print { body { background: white; } .cv-page { box-shadow: none; margin: 0; width: 100%; } }
+        .hero { background: linear-gradient(135deg, var(--cv-primary), #6d28d9, #4f46e5); color: white; padding: 32px 36px; display: flex; align-items: center; gap: 24px; }
+        .hero-photo { width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid rgba(255,255,255,0.3); flex-shrink: 0; }
+        .hero-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .hero-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.15); font-size: 32px; font-weight: 700; }
+        .hero-info h1 { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; }
+        .hero-info .title { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+        .hero-contact { margin-top: 8px; display: flex; gap: 16px; font-size: 10px; opacity: 0.8; flex-wrap: wrap; }
+        .content { padding: 28px 36px; display: flex; flex-direction: column; gap: 18px; }
+        .section h2 { font-family: 'Fraunces', serif; font-size: 14px; font-weight: 700; color: var(--cv-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .section h2::after { content: ''; flex: 1; height: 1px; background: var(--cv-border); }
+        .summary { font-size: 11px; line-height: 1.7; color: var(--cv-muted); word-wrap: break-word; overflow-wrap: break-word; }
+        .exp-item { margin-bottom: 12px; display: flex; gap: 12px; }
+        .exp-line { width: 2px; background: linear-gradient(to bottom, var(--cv-primary), var(--cv-accent)); flex-shrink: 0; border-radius: 1px; }
+        .exp-content { flex: 1; }
+        .exp-row { display: flex; justify-content: space-between; align-items: flex-start; }
+        .exp-title { font-size: 12px; font-weight: 700; }
+        .exp-date { font-size: 9.5px; color: var(--cv-muted); }
+        .exp-company { font-size: 11px; color: var(--cv-primary); font-weight: 500; margin-bottom: 2px; }
+        .exp-desc { font-size: 10.5px; line-height: 1.5; color: var(--cv-muted); word-wrap: break-word; overflow-wrap: break-word; }
+        .exp-desc ul { padding-left: 14px; } .exp-desc li { margin-bottom: 1px; word-wrap: break-word; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .edu-item { margin-bottom: 8px; }
+        .edu-degree { font-size: 12px; font-weight: 600; }
+        .edu-school { font-size: 10.5px; color: var(--cv-primary); }
+        .edu-detail { font-size: 10px; color: var(--cv-muted); }
+        .skill-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+        .skill-chip { background: linear-gradient(135deg, #ede9fe, #ddd6fe); color: var(--cv-primary); font-size: 10px; padding: 4px 12px; border-radius: 20px; font-weight: 500; }
+        .cert-item { font-size: 10.5px; margin-bottom: 3px; }
+        .lang-item { display: flex; justify-content: space-between; font-size: 10.5px; margin-bottom: 3px; }
+        .project-item { margin-bottom: 6px; }
+        .project-name { font-size: 11px; font-weight: 600; }
+        .project-desc { font-size: 10px; color: var(--cv-muted); word-wrap: break-word; overflow-wrap: break-word; }
+        .social-item { font-size: 10px; margin-bottom: 3px; }
+        .social-item a { color: var(--cv-primary); text-decoration: none; }
+        .award-item { font-size: 10.5px; margin-bottom: 3px; }
+    
+        .item-box, .entry-block, .content-card, .timeline-item, .card-box, .exp-item, .edu-item { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="cv-page">
+    <div class="hero">
+        <div class="hero-photo">
+                            <div class="hero-fallback">U</div>
+                    </div>
+        <div class="hero-info">
+            <h1>Your Name</h1>
+                        <div class="hero-contact">
+                                                                                                                                                                                                            </div>
+        </div>
+    </div>
+    <div class="content">
+                        <div class="two-col">
+                            <div class="section">
+                    <h2>Education</h2>
+                    <div class="edu-item"><div class="edu-degree">B.Sc. in Computer Science &amp; Engineering</div><div class="edu-school">University of Dhaka</div><div class="edu-detail">2014-01 – 2018-05 · 3.85 / 4.00</div></div>                </div>
+                                        <div class="section">
+                    <h2>Skills</h2>
+                    <div class="skill-grid"><span class="skill-chip">JavaScript / TypeScript</span><span class="skill-chip">React / Next.js</span><span class="skill-chip">PHP / Laravel</span><span class="skill-chip">Node.js / Express</span><span class="skill-chip">PostgreSQL / MySQL</span><span class="skill-chip">Docker / AWS</span></div>
+                </div>
+                    </div>
+                    <div class="section">
+                <h2>Projects</h2>
+                <div class="project-item"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;"><div class="project-name">Cloud HR &amp; Job Portal</div></div><div class="project-desc">End-to-end recruitment platform with AI resume parser and real-time messaging.</div></div>            </div>
+                            <div class="section">
+                <h2>Languages</h2>
+                <div class="lang-item"><span>English</span><span>Fluent</span></div><div class="lang-item"><span>Bengali</span><span>Native</span></div>            </div>
+                            <div class="section">
+                <h2>Certifications</h2>
+                <div class="cert-item">AWS Certified Solutions Architect — Amazon Web Services <span style="font-size:9px;color:var(--cv-muted);">(Sep 2026)</span></div>            </div>
+                                        
+        
+            </div>
+</div>
+</body>
+</html>

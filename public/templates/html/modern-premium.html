@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Premium CV</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --p: var(--primary-color, #1e3a5f);
+            --s: var(--secondary-color, #475569);
+            --bg: var(--bg-color, #ffffff);
+            --txt: var(--text-color, #1e293b);
+            --radius: var(--border-radius, 8px);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--txt);
+            background: #f1f5f9;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .cv-page {
+            width: 800px;
+            min-height: 1131px;
+            margin: 20px auto;
+            background: var(--bg);
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.12), 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 35%;
+            min-width: 270px;
+            padding: 40px 28px 36px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            position: relative;
+            color: #e2e8f0;
+        }
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(165deg, var(--p) 0%, color-mix(in srgb, var(--p) 85%, #000) 100%);
+            z-index: 0;
+        }
+        .sidebar > * { position: relative; z-index: 1; }
+
+        /* ── Photo ── */
+        .photo-wrap {
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 4px;
+            border-radius: 50%;
+            padding: 4px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.35), rgba(255,255,255,0.08));
+            flex-shrink: 0;
+        }
+        .photo-wrap img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+        }
+        .photo-fallback {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -1px;
+        }
+
+        /* ── Sidebar sections ── */
+        .sidebar-section { display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-title {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: rgba(255,255,255,0.5);
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+        }
+
+        /* ── Contact items ── */
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            font-weight: 400;
+            color: rgba(255,255,255,0.85);
+            line-height: 1.4;
+        }
+        .contact-item svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+            opacity: 0.65;
+        }
+        .contact-item span { word-break: break-all; }
+
+        /* ── Skill bars ── */
+        .skill-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .skill-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.9);
+        }
+        .skill-track {
+            width: 100%;
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.12);
+            overflow: hidden;
+        }
+        .skill-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.8), rgba(255,255,255,0.55));
+            transition: width 0.6s ease;
+        }
+
+        /* ── Languages ── */
+        .lang-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 400;
+            color: rgba(255,255,255,0.85);
+        }
+        .lang-dots { display: flex; gap: 4px; }
+        .lang-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+        }
+        .lang-dot.active {
+            background: rgba(255,255,255,0.75);
+        }
+
+        /* ── Main content ── */
+        .main-content {
+            flex: 1;
+            padding: 44px 40px 36px 38px;
+            display: flex;
+            flex-direction: column;
+            gap: 26px;
+            min-width: 0;
+        }
+
+        .main-name {
+            font-size: 32px;
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            color: #0f172a;
+        }
+        .main-title {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-top: 4px;
+            color: var(--p);
+        }
+        .main-summary {
+            font-size: 12px;
+            line-height: 1.7;
+            color: #475569;
+            margin-top: 2px;
+        }
+
+        /* ── Section headings ── */
+        .section-heading {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: #94a3b8;
+            padding-bottom: 7px;
+            border-bottom: 2px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-heading .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--p);
+            flex-shrink: 0;
+        }
+
+        /* ── Experience timeline ── */
+        .exp-item {
+            position: relative;
+            padding-left: 20px;
+        }
+        .exp-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 6px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--p);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--p) 15%, transparent);
+        }
+        .exp-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 3px;
+            top: 18px;
+            width: 2px;
+            height: calc(100% - 8px);
+            background: #e2e8f0;
+        }
+        .exp-item + .exp-item { margin-top: 18px; }
+        .exp-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+        .exp-role {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.3;
+        }
+        .exp-dates {
+            font-size: 9px;
+            font-weight: 700;
+            color: #94a3b8;
+            white-space: nowrap;
+            background: #f8fafc;
+            padding: 2px 8px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+        .exp-company {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--p);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-top: 1px;
+        }
+        .exp-location {
+            font-size: 10px;
+            font-weight: 500;
+            color: #94a3b8;
+            margin-top: 1px;
+        }
+        .exp-desc {
+            font-size: 11px;
+            line-height: 1.65;
+            color: #64748b;
+            margin-top: 5px;
+        }
+        .exp-achievements {
+            margin-top: 5px;
+            padding-left: 14px;
+        }
+        .exp-achievements li {
+            font-size: 11px;
+            line-height: 1.65;
+            color: #64748b;
+            margin-bottom: 2px;
+        }
+        .exp-achievements li::marker { color: var(--p); }
+
+        /* ── Education ── */
+        .edu-item + .edu-item { margin-top: 12px; }
+        .edu-degree {
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.3;
+        }
+        .edu-field {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--p);
+            margin-top: 1px;
+        }
+        .edu-school {
+            font-size: 11px;
+            font-weight: 500;
+            color: #64748b;
+            margin-top: 1px;
+        }
+        .edu-dates {
+            font-size: 9px;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        /* ── Projects grid ── */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .project-card {
+            padding: 14px 16px;
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: var(--radius);
+            transition: box-shadow 0.2s;
+        }
+        .project-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .project-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .project-role {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--p);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 2px;
+        }
+        .project-desc {
+            font-size: 10.5px;
+            line-height: 1.55;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .project-tech {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .project-tech span {
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: color-mix(in srgb, var(--p) 10%, transparent);
+            color: var(--p);
+        }
+        .project-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9px;
+            font-weight: 600;
+            color: var(--p);
+            text-decoration: none;
+            margin-top: 6px;
+        }
+        .project-link svg { width: 10px; height: 10px; }
+
+        /* ── Certifications ── */
+        .cert-item + .cert-item { margin-top: 8px; }
+        .cert-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .cert-meta {
+            font-size: 10px;
+            font-weight: 500;
+            color: #94a3b8;
+            margin-top: 1px;
+        }
+        .cert-meta a {
+            color: var(--p);
+            text-decoration: none;
+        }
+
+        /* ── Print ── */
+        @media print {
+            body { background: #fff; }
+            .cv-page {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+                min-height: auto;
+                page-break-inside: avoid;
+            }
+            .sidebar::before {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .skill-fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .lang-dot.active { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .exp-item::before { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .project-card { break-inside: avoid; }
+            .exp-item { break-inside: avoid; }
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="cv-page">
+        
+        <aside class="sidebar">
+
+            
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding-top:4px;">
+                                    <div class="photo-wrap">
+                        <div class="photo-fallback">
+                                                        U
+                        </div>
+                    </div>
+                            </div>
+
+            
+            <div class="sidebar-section">
+                <div class="sidebar-title">Contact</div>
+
+                
+                
+                            </div>
+
+            
+            
+            
+            
+                            <div class="sidebar-section">
+                    <div class="sidebar-title">Skills</div>
+                                                                                                <div class="skill-row">
+                                <div class="skill-label">JavaScript / TypeScript</div>
+                                <div class="skill-track">
+                                    <div class="skill-fill" style="width: 90%;"></div>
+                                </div>
+                            </div>
+                                                                                                                        <div class="skill-row">
+                                <div class="skill-label">React / Next.js</div>
+                                <div class="skill-track">
+                                    <div class="skill-fill" style="width: 90%;"></div>
+                                </div>
+                            </div>
+                                                                                                                        <div class="skill-row">
+                                <div class="skill-label">PHP / Laravel</div>
+                                <div class="skill-track">
+                                    <div class="skill-fill" style="width: 85%;"></div>
+                                </div>
+                            </div>
+                                                                                                                        <div class="skill-row">
+                                <div class="skill-label">Node.js / Express</div>
+                                <div class="skill-track">
+                                    <div class="skill-fill" style="width: 80%;"></div>
+                                </div>
+                            </div>
+                                                                                                                        <div class="skill-row">
+                                <div class="skill-label">PostgreSQL / MySQL</div>
+                                <div class="skill-track">
+                                    <div class="skill-fill" style="width: 85%;"></div>
+                                </div>
+                            </div>
+                                                                                                                        <div class="skill-row">
+                                <div class="skill-label">Docker / AWS</div>
+                                <div class="skill-track">
+                                    <div class="skill-fill" style="width: 75%;"></div>
+                                </div>
+                            </div>
+                                                            </div>
+            
+            
+                            <div class="sidebar-section">
+                    <div class="sidebar-title">Languages</div>
+                                                                                                <div class="lang-item">
+                                <span>English</span>
+                                <div class="lang-dots">
+                                                                            <div class="lang-dot active"></div>
+                                                                            <div class="lang-dot active"></div>
+                                                                            <div class="lang-dot active"></div>
+                                                                            <div class="lang-dot active"></div>
+                                                                            <div class="lang-dot active"></div>
+                                                                    </div>
+                            </div>
+                                                                                                                        <div class="lang-item">
+                                <span>Bengali</span>
+                                <div class="lang-dots">
+                                                                            <div class="lang-dot active"></div>
+                                                                            <div class="lang-dot active"></div>
+                                                                            <div class="lang-dot active"></div>
+                                                                            <div class="lang-dot active"></div>
+                                                                            <div class="lang-dot active"></div>
+                                                                    </div>
+                            </div>
+                                                            </div>
+            
+        </aside>
+
+        
+        <main class="main-content">
+
+            
+            <header>
+                <h1 class="main-name">Your Full Name</h1>
+                            </header>
+
+            
+            
+            
+            
+            
+                            <section>
+                    <div class="section-heading"><span class="dot"></span> Education</div>
+                    <div style="margin-top:14px;">
+                                                                                <div class="edu-item">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                                    <div class="edu-degree">B.Sc. in Computer Science &amp; Engineering</div>
+                                                                            <div class="exp-dates">2014 — 2018</div>
+                                                                    </div>
+                                                                    <div class="edu-field">Computer Science</div>
+                                                                                                    <div class="edu-school">University of Dhaka</div>
+                                                                                            </div>
+                                            </div>
+                </section>
+            
+            
+                            <section>
+                    <div class="section-heading"><span class="dot"></span> Projects</div>
+                    <div class="projects-grid" style="margin-top:14px;">
+                                                                                <div class="project-card">
+                                <div class="project-name">Project</div>
+                                                                    <div class="project-role">Lead Architect</div>
+                                                                                                    <p class="project-desc">End-to-end recruitment platform with AI resume parser and real-time messaging.</p>
+                                                                                                                            </div>
+                                            </div>
+                </section>
+            
+            
+                            <section>
+                    <div class="section-heading"><span class="dot"></span> Certifications</div>
+                    <div style="margin-top:14px;">
+                                                                                <div class="cert-item">
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                                    <div class="cert-name">AWS Certified Solutions Architect</div>
+                                                                            <div class="exp-dates">2022</div>
+                                                                    </div>
+                                                                    <div class="cert-meta">
+                                        Amazon Web Services
+                                                                            </div>
+                                                            </div>
+                                            </div>
+                </section>
+            
+        </main>
+    </div>
+</body>
+</html>

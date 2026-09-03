@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CV - Timeline Modern</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --cyan: #0891b2; --cyan-dark: #0e7490; --cyan-light: #ecfeff; --text: #0f172a; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; color: var(--text); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { overflow: visible !important; }
+        .cv-page { width: 210mm; min-height: auto; margin: 0 auto; background: #fff; padding: 30px 34px; display: flex; flex-direction: column; gap: 16px;     align-items: stretch;
+        }
+        @media print { body { background: #fff; } .cv-page { padding: 20mm; width: 100%; min-height: auto; } }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--cyan); padding-bottom: 14px; }
+        .header h1 { font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 800; color: var(--cyan-dark); }
+        .header .title { font-size: 11px; color: var(--cyan); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .timeline { position: relative; padding-left: 20px; border-left: 2px solid var(--cyan); margin-left: 6px; }
+        .timeline-node { position: absolute; left: -26px; width: 10px; height: 10px; border-radius: 50%; background: var(--cyan); border: 2px solid #fff; }
+        .timeline-item { position: relative; margin-bottom: 12px; }
+        .sec-title { font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700; color: var(--cyan-dark); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .exp-head { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 700; }
+        .exp-co { font-size: 10px; color: var(--cyan); font-weight: 600; margin: 1px 0 3px; }
+        .exp-desc { font-size: 9.5px; color: #475569; line-height: 1.55; }
+        .exp-desc ul { padding-left: 14px; }
+        .tag { display: inline-block; font-size: 9px; padding: 2px 8px; border-radius: 12px; background: var(--cyan-light); color: var(--cyan-dark); border: 1px solid #a5f3fc; font-weight: 600; margin: 0 3px 4px 0; }
+    
+        .item-box, .entry-block, .content-card, .timeline-item, .card-box, .exp-item, .edu-item { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="cv-page">
+    <div class="header">
+        <div>
+            <h1>Your Name</h1>
+                    </div>
+        <div style="font-size:9.5px;color:#64748b;text-align:right;">
+                                            </div>
+    </div>
+
+    
+    
+        <div>
+        <div class="sec-title">Education</div>
+        <div class="timeline">
+                        <div class="timeline-item">
+                <div class="timeline-node" style="background:#0e7490;"></div>
+                <div class="exp-head"><div>B.Sc. in Computer Science &amp; Engineering</div><div style="font-size:9px;color:#64748b;">2014-01</div></div>
+                <div class="exp-co">University of Dhaka</div>
+            </div>
+                    </div>
+    </div>
+    
+        <div>
+        <div class="sec-title">Skills</div>
+        <div><span class="tag">JavaScript / TypeScript</span><span class="tag">React / Next.js</span><span class="tag">PHP / Laravel</span><span class="tag">Node.js / Express</span><span class="tag">PostgreSQL / MySQL</span><span class="tag">Docker / AWS</span></div>
+    </div>
+    </div>
+</body>
+</html>

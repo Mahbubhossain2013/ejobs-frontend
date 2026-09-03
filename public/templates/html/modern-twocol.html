@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV - Modern Two-Column</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --cv-primary: #0f172a; --cv-accent: #06b6d4; --cv-text: #1e293b; --cv-bg: #ffffff; --cv-muted: #64748b; --cv-border: #e2e8f0; --cv-sidebar: #0f172a; --cv-hero-end: #0891b2; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; color: var(--cv-text); background: #f1f5f9; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { overflow: visible !important; }
+        .cv-page { width: 210mm; min-height: auto; margin: 0 auto; background: var(--cv-bg); box-shadow: 0 4px 24px rgba(0,0,0,0.08); display: flex; flex-direction: column;     align-items: stretch;
+        }
+        @media print { body { background: white; } .cv-page { box-shadow: none; margin: 0; width: 100%; } }
+        .hero {
+            background: linear-gradient(135deg, var(--cv-sidebar), var(--cv-accent), var(--cv-hero-end));
+            padding: 32px 36px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: -40px;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+        .hero-inner { position: relative; z-index: 1; }
+        .hero-row { display: flex; align-items: center; gap: 20px; }
+        .hero-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 3px solid rgba(255,255,255,0.3);
+            flex-shrink: 0;
+            transform: rotate(-3deg);
+        }
+        .hero-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .hero-fallback {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.15);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 30px;
+            font-weight: 700;
+        }
+        .hero-text { flex: 1; }
+        .hero-text h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .hero-text .title {
+            font-size: 12px;
+            font-weight: 400;
+            opacity: 0.85;
+            margin-top: 2px;
+        }
+        .hero-contact {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 18px;
+            margin-top: 10px;
+            font-size: 9.5px;
+            opacity: 0.85;
+        }
+        .hero-contact span { display: flex; align-items: center; gap: 5px; }
+        .hero-contact svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .hero-contact a { color: white; text-decoration: underline; text-underline-offset: 2px; }
+
+        .body-wrap { display: flex; flex: 1; }
+        .left-panel {
+            width: 33%;
+            background: #f8fafc;
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            border-right: 1px solid var(--cv-border);
+        }
+        .left-panel .section-label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--cv-accent);
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px dashed var(--cv-border);
+        }
+
+        .skill-item {
+            display: inline-block;
+            font-size: 9.5px;
+            background: white;
+            border: 1px solid var(--cv-border);
+            padding: 3px 9px;
+            border-radius: 3px;
+            margin: 0 3px 5px 0;
+            color: var(--cv-muted);
+        }
+
+        .lang-item { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px; }
+        .lang-name { font-weight: 500; }
+        .lang-level { color: var(--cv-muted); }
+
+        .contact-block-item {
+            font-size: 10px;
+            margin-bottom: 6px;
+            color: var(--cv-muted);
+            word-break: break-all;
+        }
+        .contact-block-item a { color: var(--cv-accent); text-decoration: none; }
+
+        .social-item { font-size: 9.5px; margin-bottom: 4px; }
+        .social-item a { color: var(--cv-accent); text-decoration: none; }
+
+        .right-panel {
+            flex: 1;
+            padding: 24px 26px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .right-panel .section-label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--cv-primary);
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid var(--cv-accent);
+            display: inline-block;
+        }
+
+        .summary-text {
+            font-size: 11px;
+            line-height: 1.7;
+            color: var(--cv-muted);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .exp-item {
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            background: #f8fafc;
+        }
+        .exp-row { display: flex; justify-content: space-between; align-items: flex-start; }
+        .exp-title { font-size: 12px; font-weight: 700; color: var(--cv-primary); }
+        .exp-date { font-size: 9.5px; color: var(--cv-muted); white-space: nowrap; }
+        .exp-company { font-size: 11px; color: var(--cv-accent); font-weight: 500; margin: 2px 0 4px; }
+        .exp-desc { font-size: 10.5px; line-height: 1.5; color: var(--cv-muted); word-wrap: break-word; overflow-wrap: break-word; }
+        .exp-desc ul { padding-left: 14px; }
+        .exp-desc li { margin-bottom: 1px; word-wrap: break-word; }
+
+        .edu-item { margin-bottom: 8px; }
+        .edu-degree { font-size: 11.5px; font-weight: 600; color: var(--cv-primary); }
+        .edu-school { font-size: 10.5px; color: var(--cv-accent); }
+        .edu-detail { font-size: 10px; color: var(--cv-muted); }
+
+        .cert-item { font-size: 10.5px; margin-bottom: 4px; }
+        .cert-name { font-weight: 600; }
+        .project-item { margin-bottom: 8px; }
+        .project-name { font-size: 11px; font-weight: 600; color: var(--cv-primary); }
+        .project-desc { font-size: 10px; color: var(--cv-muted); word-wrap: break-word; overflow-wrap: break-word; }
+        .award-item { font-size: 10.5px; margin-bottom: 3px; color: var(--cv-muted); }
+    
+        .item-box, .entry-block, .content-card, .timeline-item, .card-box, .exp-item, .edu-item { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="cv-page">
+    <div class="hero">
+        <div class="hero-inner">
+            <div class="hero-row">
+                                <div class="hero-text">
+                    <h1>Your Name</h1>
+                                        <div class="hero-contact">
+                                                                                                                                                                                                                                                                                                                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="body-wrap">
+        <div class="left-panel">
+                            <div>
+                    <div class="section-label">Skills</div>
+                    <div><span class="skill-item">JavaScript / TypeScript</span><span class="skill-item">React / Next.js</span><span class="skill-item">PHP / Laravel</span><span class="skill-item">Node.js / Express</span><span class="skill-item">PostgreSQL / MySQL</span><span class="skill-item">Docker / AWS</span></div>
+                </div>
+            
+                            <div>
+                    <div class="section-label">Languages</div>
+                                                                    <div class="lang-item"><span class="lang-name">English</span><span class="lang-level">Fluent</span></div>
+                                                                    <div class="lang-item"><span class="lang-name">Bengali</span><span class="lang-level">Native</span></div>
+                                    </div>
+            
+                            <div>
+                    <div class="section-label">Certifications</div>
+                                                                    <div class="cert-item"><span class="cert-name">AWS Certified Solutions Architect</span><br><span style="font-size:9px;color:var(--cv-muted)">Amazon Web Services</span><br><span style="font-size:9px;color:var(--cv-muted);">(Sep 2026)</span></div>
+                                    </div>
+            
+                    </div>
+
+        <div class="right-panel">
+            
+            
+                            <div>
+                    <div class="section-label">Education</div>
+                                            <div class="edu-item">
+                            <div class="edu-degree">B.Sc. in Computer Science &amp; Engineering</div>
+                            <div class="edu-school">University of Dhaka</div>
+                            <div class="edu-detail">2014-01 – 2018-05 · 3.85 / 4.00</div>
+                        </div>
+                                    </div>
+            
+            
+                            <div>
+                    <div class="section-label">Projects</div>
+                                            <div class="project-item">
+                            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+                                <div class="project-name">Cloud HR &amp; Job Portal</div>
+                                                            </div>
+                                                                                        <div class="project-desc">End-to-end recruitment platform with AI resume parser and real-time messaging.</div>
+                                                    </div>
+                                    </div>
+            
+            
+            
+            
+                    </div>
+    </div>
+</div>
+</body>
+</html>

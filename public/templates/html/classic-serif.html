@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CV - Classic Serif</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lora:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Lora', serif; background: #fff; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { overflow: visible !important; }
+        .cv-page { width: 210mm; min-height: auto; margin: 0 auto; background: #fff; padding: 36px 42px; display: flex; flex-direction: column; gap: 16px;     align-items: stretch;
+        }
+        @media print { .cv-page { padding: 20mm; width: 100%; min-height: auto; } }
+        .header { text-align: center; border-bottom: 2px solid #111; padding-bottom: 12px; }
+        .header h1 { font-family: 'Cinzel', serif; font-size: 26px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+        .header .title { font-size: 11px; font-style: italic; margin-top: 2px; color: #444; }
+        .contact-line { display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; font-size: 9.5px; margin-top: 6px; color: #555; }
+        .sec-title { font-family: 'Cinzel', serif; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; border-bottom: 1px solid #777; padding-bottom: 2px; margin-bottom: 8px; }
+        .item-head { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; }
+        .item-sub { font-size: 10px; font-style: italic; color: #444; margin-bottom: 3px; }
+        .desc { font-size: 9.5px; line-height: 1.6; color: #333; }
+        .desc ul { padding-left: 16px; }
+    
+        .item-box, .entry-block, .content-card, .timeline-item, .card-box, .exp-item, .edu-item { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="cv-page">
+    <div class="header">
+        <h1>Your Name</h1>
+                <div class="contact-line">
+                                                        </div>
+    </div>
+
+    
+    
+        <div>
+        <div class="sec-title">Education</div>
+                <div style="margin-bottom:8px;">
+            <div class="item-head"><div>University of Dhaka</div><div style="font-weight:400;font-style:italic;">2014-01 – 2018-05</div></div>
+            <div class="item-sub">B.Sc. in Computer Science &amp; Engineering</div>
+        </div>
+            </div>
+    
+        <div>
+        <div class="sec-title">Skills & Competencies</div>
+        <p class="desc">
+                        JavaScript / TypeScript • React / Next.js • PHP / Laravel • Node.js / Express • PostgreSQL / MySQL • Docker / AWS
+        </p>
+    </div>
+    </div>
+</body>
+</html>

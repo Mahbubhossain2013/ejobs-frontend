@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Preview</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: white; 
+            margin: 0;
+            -webkit-print-color-adjust: exact;
+        }
+        .page-container {
+            width: 800px;
+            min-height: 1131px; /* A4 aspect ratio */
+            padding: 64px;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+
+        
+        <header id="cv-header" class="mb-10 space-y-4 border-b-2 border-slate-200 pb-8">
+            <h1 id="name" class="text-5xl font-black tracking-tighter text-slate-800 leading-none">
+                John Doe
+            </h1>
+            <div class="flex items-center justify-between">
+                <p id="title" class="text-xl font-bold text-blue-600">
+                    Professional Title
+                </p>
+                <div class="flex gap-4 items-center text-xs font-bold text-slate-500 uppercase tracking-widest">
+                    <span id="email">john.doe@example.com</span>
+                    <span id="phone">+880 1712-345678</span>
+                </div>
+            </div>
+            
+            <div id="socials" class="flex gap-4 pt-2">
+                                            </div>
+        </header>
+
+        <div class="grid grid-cols-12 gap-12">
+            
+            <div class="col-span-8 space-y-12">
+                <section>
+                    <h2 class="text-xs font-black uppercase tracking-[0.3em] text-blue-600 mb-6">Experience</h2>
+                    <div id="experience-list" class="space-y-8">
+                                                    <p class="text-sm italic text-slate-400">No work experience listed.</p>
+                                            </div>
+                </section>
+            </div>
+
+            
+            <div class="col-span-4 space-y-10">
+                <section>
+                    <h2 class="text-xs font-black uppercase tracking-[0.3em] text-blue-600 mb-4">Skills</h2>
+                    <div id="skills-list" class="flex flex-wrap gap-1.5">
+                                                    <span class="text-[9px] font-black uppercase bg-slate-100 px-2.5 py-1 rounded">JavaScript / TypeScript</span>
+                                                    <span class="text-[9px] font-black uppercase bg-slate-100 px-2.5 py-1 rounded">React / Next.js</span>
+                                                    <span class="text-[9px] font-black uppercase bg-slate-100 px-2.5 py-1 rounded">PHP / Laravel</span>
+                                                    <span class="text-[9px] font-black uppercase bg-slate-100 px-2.5 py-1 rounded">Node.js / Express</span>
+                                                    <span class="text-[9px] font-black uppercase bg-slate-100 px-2.5 py-1 rounded">PostgreSQL / MySQL</span>
+                                                    <span class="text-[9px] font-black uppercase bg-slate-100 px-2.5 py-1 rounded">Docker / AWS</span>
+                                            </div>
+                </section>
+
+                <section>
+                    <h2 class="text-xs font-black uppercase tracking-[0.3em] text-blue-600 mb-6">Education</h2>
+                    <div id="education-list" class="space-y-6">
+                                                    <div class="space-y-1 border-l-2 border-slate-200 pl-4">
+                                <p class="font-bold text-slate-800 text-sm">B.Sc. in Computer Science &amp; Engineering</p>
+                                <p class="text-xs font-bold text-slate-500">University of Dhaka</p>
+                            </div>
+                                            </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    
+    <script>
+        window.addEventListener('message', function(event) {
+            // Check if the message is from our trusted React app (optional but good practice)
+            // if (event.origin !== "http://localhost:5173") return;
+
+            if (event.data.type === 'UPDATE_CV_DATA') {
+                const data = event.data.data;
+                const personal = data.personal || {};
+
+                // --- Static Fields ---
+                document.getElementById('name').textContent = personal.full_name || 'Your Full Name';
+                document.getElementById('title').textContent = personal.title || 'Professional Title';
+                document.getElementById('email').textContent = personal.email || '';
+                document.getElementById('phone').textContent = personal.phone || '';
+
+                // --- Dynamic Lists (Re-render the HTML) ---
+                
+                // Skills
+                const skillsList = document.getElementById('skills-list');
+                skillsList.innerHTML = ''; // Clear old items
+                (data.skills || []).forEach(skill => {
+                    skillsList.innerHTML += `<span class="text-[9px] font-black uppercase bg-slate-100 px-2.5 py-1 rounded">${skill}</span>`;
+                });
+
+                // Experience
+                const expList = document.getElementById('experience-list');
+                expList.innerHTML = '';
+                (data.experience || []).forEach(exp => {
+                    expList.innerHTML += `
+                        <div class="space-y-1 relative border-l-2 border-slate-200 pl-4">
+                            <div class="absolute w-2 h-2 rounded-full bg-blue-600 -left-[5px] top-1.5"></div>
+                            <h4 class="font-bold text-slate-800 text-lg">${exp.title || ''}</h4>
+                            <p class="text-xs font-black text-blue-600 uppercase">${exp.company || ''}</p>
+                            <p class="text-sm text-slate-500 leading-relaxed">${exp.description || ''}</p>
+                        </div>
+                    `;
+                });
+                
+                // Education
+                const eduList = document.getElementById('education-list');
+                eduList.innerHTML = '';
+                (data.education || []).forEach(edu => {
+                    eduList.innerHTML += `
+                        <div class="space-y-1 border-l-2 border-slate-200 pl-4">
+                            <p class="font-bold text-slate-800 text-sm">${edu.degree || ''}</p>
+                            <p class="text-xs font-bold text-slate-500">${edu.institution || ''}</p>
+                        </div>
+                    `;
+                });
+
+                // Socials
+                const socialsContainer = document.getElementById('socials');
+                socialsContainer.innerHTML = '';
+                if(personal.social_links?.linkedin) {
+                    socialsContainer.innerHTML += `<span class="flex items-center gap-1 text-[9px] font-bold text-slate-400">...</span>`;
+                }
+                // Add more social links here if needed
+            }
+        });
+    </script>
+</body>
+</html>

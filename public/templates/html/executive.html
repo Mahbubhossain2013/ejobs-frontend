@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV - Executive</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --cv-primary: #0a1628; --cv-accent: #c9a94e; --cv-text: #1e293b; --cv-bg: #ffffff; --cv-muted: #64748b; --cv-border: #e2e8f0; --cv-light-bg: #f8f6f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; color: var(--cv-text); background: #f1f5f9; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { overflow: visible !important; }
+        .cv-page { width: 210mm; min-height: auto; margin: 0 auto; background: var(--cv-bg); box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+        @media print { body { background: white; } .cv-page { box-shadow: none; margin: 0; width: 100%; } }
+        .exec-header {
+            background: var(--cv-primary);
+            color: white;
+            padding: 32px 40px 28px;
+            position: relative;
+        }
+        .exec-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 40px;
+            right: 40px;
+            height: 3px;
+            background: var(--cv-accent);
+        }
+        .exec-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .exec-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 300;
+            color: #94a3b8;
+            margin-top: 4px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .exec-contact {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 24px;
+            margin-top: 14px;
+            font-size: 10px;
+            color: #cbd5e1;
+        }
+        .exec-contact span { display: flex; align-items: center; gap: 6px; }
+        .exec-contact svg { width: 12px; height: 12px; fill: none; stroke: var(--cv-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+        .exec-contact a { color: var(--cv-accent); text-decoration: none; }
+
+        .content { padding: 28px 40px; display: flex; flex-direction: column; gap: 20px; }
+
+        .section { }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 10px;
+        }
+        .section-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--cv-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+        .section-header .rule {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, var(--cv-accent), transparent);
+        }
+
+        .summary-text {
+            font-size: 11px;
+            line-height: 1.7;
+            color: var(--cv-muted);
+            padding-left: 14px;
+            border-left: 2px solid var(--cv-accent);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .exp-item {
+            margin-bottom: 14px;
+            padding: 12px 14px;
+            background: var(--cv-light-bg);
+            border-radius: 6px;
+            border-left: 3px solid var(--cv-accent);
+        }
+        .exp-row { display: flex; justify-content: space-between; align-items: flex-start; }
+        .exp-title { font-size: 12px; font-weight: 700; color: var(--cv-primary); }
+        .exp-date { font-size: 9.5px; color: var(--cv-muted); white-space: nowrap; margin-top: 1px; }
+        .exp-company { font-size: 11px; color: var(--cv-accent); font-weight: 600; margin: 2px 0 4px; }
+        .exp-desc { font-size: 10.5px; line-height: 1.5; color: var(--cv-muted); word-wrap: break-word; overflow-wrap: break-word; }
+        .exp-desc ul { padding-left: 14px; list-style: none; }
+        .exp-desc li { margin-bottom: 2px; position: relative; padding-left: 12px; word-wrap: break-word; }
+        .exp-desc li::before { content: '\25B8'; position: absolute; left: 0; color: var(--cv-accent); font-size: 9px; }
+
+        .edu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .edu-card {
+            background: var(--cv-light-bg);
+            padding: 10px 14px;
+            border-radius: 6px;
+            border-top: 2px solid var(--cv-accent);
+        }
+        .edu-degree { font-size: 12px; font-weight: 700; color: var(--cv-primary); }
+        .edu-school { font-size: 10.5px; color: var(--cv-accent); margin: 2px 0; }
+        .edu-detail { font-size: 9.5px; color: var(--cv-muted); }
+
+        .skills-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+        .skill-pill {
+            background: var(--cv-primary);
+            color: white;
+            font-size: 9.5px;
+            padding: 4px 12px;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+
+        .cert-item { font-size: 10.5px; margin-bottom: 4px; padding-left: 14px; position: relative; }
+        .cert-item::before { content: '\2713'; position: absolute; left: 0; color: var(--cv-accent); font-size: 10px; font-weight: 700; }
+
+        .lang-row { display: flex; gap: 16px; flex-wrap: wrap; }
+        .lang-item { font-size: 10.5px; }
+        .lang-name { font-weight: 600; }
+        .lang-level { color: var(--cv-muted); }
+
+        .project-item { margin-bottom: 8px; }
+        .project-name { font-size: 11px; font-weight: 600; color: var(--cv-primary); }
+        .project-desc { font-size: 10px; color: var(--cv-muted); line-height: 1.5; word-wrap: break-word; overflow-wrap: break-word; }
+
+        .award-item { font-size: 10.5px; margin-bottom: 4px; padding-left: 14px; position: relative; }
+        .award-item::before { content: '\2605'; position: absolute; left: 0; color: var(--cv-accent); font-size: 10px; }
+    
+        .item-box, .entry-block, .content-card, .timeline-item, .card-box, .exp-item, .edu-item { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="cv-page">
+    <div class="exec-header">
+                <div class="exec-name">Your Name</div>
+                <div class="exec-contact">
+                                                                                                                                                        </div>
+            </div>
+
+    <div class="content">
+        
+        
+                    <div class="section">
+                <div class="section-header"><h2>Education</h2><div class="rule"></div></div>
+                <div class="edu-grid">
+                                            <div class="edu-card">
+                            <div class="edu-degree">B.Sc. in Computer Science &amp; Engineering</div>
+                            <div class="edu-school">University of Dhaka</div>
+                            <div class="edu-detail">2014-01 – 2018-05 · 3.85 / 4.00</div>
+                        </div>
+                                    </div>
+            </div>
+        
+                    <div class="section">
+                <div class="section-header"><h2>Core Competencies</h2><div class="rule"></div></div>
+                <div class="skills-wrap">
+                    <span class="skill-pill">JavaScript / TypeScript</span><span class="skill-pill">React / Next.js</span><span class="skill-pill">PHP / Laravel</span><span class="skill-pill">Node.js / Express</span><span class="skill-pill">PostgreSQL / MySQL</span><span class="skill-pill">Docker / AWS</span>                </div>
+            </div>
+        
+                    <div class="section">
+                <div class="section-header"><h2>Certifications</h2><div class="rule"></div></div>
+                                                        <div class="cert-item"><span class="cert-name">AWS Certified Solutions Architect</span> — Amazon Web Services <span style="font-size:9px;color:var(--cv-muted);">(Sep 2026)</span></div>
+                            </div>
+        
+                    <div class="section">
+                <div class="section-header"><h2>Projects</h2><div class="rule"></div></div>
+                                    <div class="project-item">
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+                            <div class="project-name">Cloud HR &amp; Job Portal</div>
+                                                    </div>
+                                                                            <div class="project-desc">End-to-end recruitment platform with AI resume parser and real-time messaging.</div>
+                                            </div>
+                            </div>
+        
+                    <div class="section">
+                <div class="section-header"><h2>Languages</h2><div class="rule"></div></div>
+                <div class="lang-row">
+                                                                    <div class="lang-item"><span class="lang-name">English</span><span class="lang-level"> (Fluent)</span></div>
+                                                                    <div class="lang-item"><span class="lang-name">Bengali</span><span class="lang-level"> (Native)</span></div>
+                                    </div>
+            </div>
+        
+        
+        
+        
+        
+            </div>
+</div>
+</body>
+</html>

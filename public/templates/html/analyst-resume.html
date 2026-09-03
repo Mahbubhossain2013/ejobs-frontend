@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CV - Analyst Resume</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --navy: #1e293b; --gold: #f59e0b; --text: #0f172a; --muted: #64748b; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: var(--text); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { overflow: visible !important; }
+        .cv-page { width: 210mm; min-height: auto; margin: 0 auto; background: #fff; display: flex;     align-items: stretch;
+        }
+        @media print { body { background: #fff; } .cv-page { width: 100%; min-height: auto; } }
+        .side { width: 34%; background: var(--navy); color: #fff; padding: 26px 18px; display: flex; flex-direction: column; gap: 16px; }
+        .main { flex: 1; padding: 26px 26px; display: flex; flex-direction: column; gap: 16px; }
+        .gold-badge { background: var(--gold); color: #000; padding: 10px 16px; border-radius: 6px; margin-bottom: 12px; }
+        .sec-title { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #0f172a; border-bottom: 2px solid var(--gold); padding-bottom: 3px; margin-bottom: 8px; }
+        .exp-item { margin-bottom: 8px; }
+        .exp-head { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; }
+        .exp-co { font-size: 9.5px; color: #d97706; font-weight: 600; margin-bottom: 2px; }
+        .exp-desc { font-size: 9px; color: #475569; line-height: 1.5; }
+        .exp-desc ul { padding-left: 14px; }
+    
+        .item-box, .entry-block, .content-card, .timeline-item, .card-box, .exp-item, .edu-item { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="cv-page">
+    <div class="side">
+        <div style="text-align:center;">
+                    </div>
+
+        <div>
+            <div style="font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">Contact</div>
+                                            </div>
+
+                <div>
+            <div style="font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;margin-bottom:6px;">Skills Rating</div>
+                                    <div style="font-size:9px;margin-bottom:3px;color:#f8fafc;">★ JavaScript / TypeScript</div>                                    <div style="font-size:9px;margin-bottom:3px;color:#f8fafc;">★ React / Next.js</div>                                    <div style="font-size:9px;margin-bottom:3px;color:#f8fafc;">★ PHP / Laravel</div>                                    <div style="font-size:9px;margin-bottom:3px;color:#f8fafc;">★ Node.js / Express</div>                                    <div style="font-size:9px;margin-bottom:3px;color:#f8fafc;">★ PostgreSQL / MySQL</div>                                    <div style="font-size:9px;margin-bottom:3px;color:#f8fafc;">★ Docker / AWS</div>                    </div>
+            </div>
+
+    <div class="main">
+        <div class="gold-badge">
+            <h1 style="font-size:20px;font-weight:800;">Mark Brown</h1>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;"></div>
+        </div>
+
+        
+        
+                <div>
+            <div class="sec-title">Education</div>
+                        <div class="exp-item">
+                <div class="exp-head"><div>B.Sc. in Computer Science &amp; Engineering</div><div style="font-size:8.5px;color:var(--muted)">2014-01</div></div>
+                <div class="exp-co">University of Dhaka</div>
+            </div>
+                    </div>
+            </div>
+</div>
+</body>
+</html>

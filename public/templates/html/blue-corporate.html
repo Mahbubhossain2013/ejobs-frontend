@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CV - Blue Corporate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --blue: #1e40af; --blue-dark: #1e3a8a; --blue-light: #eff6ff; --blue-border: #bfdbfe; --text: #0f172a; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Nunito Sans', sans-serif; background: #f1f5f9; color: var(--text); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { overflow: visible !important; }
+        .cv-page { width: 210mm; min-height: auto; margin: 0 auto; background: #fff; display: flex; flex-direction: column;     align-items: stretch;
+        }
+        @media print { body { background: #fff; } .cv-page { width: 100%; min-height: auto; } }
+        .hero { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #fff; padding: 26px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .hero h1 { font-size: 26px; font-weight: 800; }
+        .hero .title { font-size: 11px; opacity: 0.9; margin-top: 2px; }
+        .body-wrap { display: flex; flex: 1; }
+        .sidebar { width: 34%; background: var(--blue-light); padding: 22px 18px; display: flex; flex-direction: column; gap: 16px; border-right: 1px solid var(--blue-border); }
+        .main { flex: 1; padding: 24px 26px; display: flex; flex-direction: column; gap: 16px; }
+        .sec-title { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--blue-dark); border-bottom: 2px solid var(--blue); padding-bottom: 3px; margin-bottom: 8px; }
+        .ci { font-size: 9.5px; color: #334155; margin-bottom: 5px; word-break: break-all; }
+        .ci a { color: var(--blue); }
+        .skill-tag { display: inline-block; font-size: 9px; padding: 2px 7px; background: #fff; border: 1px solid var(--blue-border); color: var(--blue); border-radius: 4px; font-weight: 600; margin: 0 3px 4px 0; }
+        .card { margin-bottom: 10px; }
+        .card-row { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 700; }
+        .card-sub { font-size: 10px; color: var(--blue); font-weight: 600; margin: 1px 0 3px; }
+        .card-desc { font-size: 9.5px; color: #475569; line-height: 1.55; }
+        .card-desc ul { padding-left: 14px; }
+    
+        .item-box, .entry-block, .content-card, .timeline-item, .card-box, .exp-item, .edu-item { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="cv-page">
+    <div class="hero">
+        <div>
+            <h1>Your Name</h1>
+                    </div>
+            </div>
+    <div class="body-wrap">
+        <div class="sidebar">
+            <div>
+                <div class="sec-title">Contact</div>
+                                                                            </div>
+
+                        <div>
+                <div class="sec-title">Skills</div>
+                <div><span class="skill-tag">JavaScript / TypeScript</span><span class="skill-tag">React / Next.js</span><span class="skill-tag">PHP / Laravel</span><span class="skill-tag">Node.js / Express</span><span class="skill-tag">PostgreSQL / MySQL</span><span class="skill-tag">Docker / AWS</span></div>
+            </div>
+            
+                        <div>
+                <div class="sec-title">Languages</div>
+                                                <div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:4px;"><span>English</span><span style="color:var(--blue);font-weight:700;">Fluent</span></div>
+                                                <div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:4px;"><span>Bengali</span><span style="color:var(--blue);font-weight:700;">Native</span></div>
+                            </div>
+                    </div>
+
+        <div class="main">
+            
+            
+                        <div>
+                <div class="sec-title">Education</div>
+                                <div class="card">
+                    <div class="card-row"><div>B.Sc. in Computer Science &amp; Engineering</div><div style="font-size:9px;color:#64748b;">2014-01 – 2018-05</div></div>
+                    <div class="card-sub">University of Dhaka</div>
+                </div>
+                            </div>
+                    </div>
+    </div>
+</div>
+</body>
+</html>

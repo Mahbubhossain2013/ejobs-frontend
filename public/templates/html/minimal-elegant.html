@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV - Minimal Elegant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --cv-primary: var(--primary-color, #1c1917); --cv-accent: #78716c; --cv-text: var(--text-color, #1c1917); --cv-bg: var(--bg-color, #ffffff); --cv-muted: #78716c; --cv-border: #e7e5e4; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Source Sans 3', sans-serif; color: var(--cv-text); background: #f5f5f4; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { overflow: visible !important; }
+        .cv-page { width: 210mm; min-height: auto; margin: 0 auto; background: var(--cv-bg); padding: 48px 48px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+        @media print { body { background: white; } .cv-page { box-shadow: none; margin: 0; width: 100%; padding: 24px; } }
+        .header { text-align: center; margin-bottom: 28px; }
+        .header h1 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; letter-spacing: -0.5px; color: var(--cv-primary); }
+        .header .title { font-size: 13px; color: var(--cv-muted); margin-top: 4px; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; }
+        .divider { width: 40px; height: 1px; background: var(--cv-primary); margin: 16px auto; }
+        .contact-row { display: flex; justify-content: center; gap: 20px; font-size: 10px; color: var(--cv-muted); }
+        .contact-row a { color: var(--cv-primary); text-decoration: none; }
+        .content { display: flex; flex-direction: column; gap: 22px; }
+        .section h2 { font-family: 'Playfair Display', serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--cv-primary); margin-bottom: 10px; text-align: center; }
+        .section h2::before, .section h2::after { content: '—'; margin: 0 8px; color: var(--cv-border); }
+        .summary { font-size: 11px; line-height: 1.8; color: var(--cv-muted); text-align: center; max-width: 540px; margin: 0 auto; word-wrap: break-word; overflow-wrap: break-word; }
+        .exp-item { margin-bottom: 14px; text-align: center; }
+        .exp-row { display: flex; justify-content: center; gap: 16px; align-items: center; }
+        .exp-title { font-size: 12px; font-weight: 600; }
+        .exp-date { font-size: 10px; color: var(--cv-muted); font-style: italic; }
+        .exp-company { font-size: 11px; color: var(--cv-accent); margin-bottom: 3px; }
+        .exp-desc { font-size: 10.5px; line-height: 1.6; color: var(--cv-muted); text-align: center; max-width: 500px; margin: 0 auto; word-wrap: break-word; overflow-wrap: break-word; }
+        .exp-desc ul { list-style: none; padding: 0; }
+        .exp-desc li { word-wrap: break-word; }
+        .exp-desc li::before { content: '· '; color: var(--cv-accent); }
+        .edu-item { margin-bottom: 10px; text-align: center; }
+        .edu-degree { font-size: 12px; font-weight: 600; }
+        .edu-school { font-size: 11px; color: var(--cv-accent); }
+        .edu-detail { font-size: 10px; color: var(--cv-muted); }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .skill-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        .skill-item { font-size: 10px; color: var(--cv-muted); padding: 3px 0; }
+        .skill-item::after { content: ' · '; color: var(--cv-border); }
+        .skill-item:last-child::after { display: none; }
+        .cert-item { font-size: 10.5px; margin-bottom: 3px; text-align: center; }
+        .lang-item { display: flex; justify-content: space-between; font-size: 10.5px; margin-bottom: 3px; }
+        .project-item { margin-bottom: 6px; text-align: center; }
+        .project-name { font-size: 11px; font-weight: 600; }
+        .project-desc { font-size: 10px; color: var(--cv-muted); word-wrap: break-word; overflow-wrap: break-word; }
+    
+        .item-box, .entry-block, .content-card, .timeline-item, .card-box, .exp-item, .edu-item { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="cv-page">
+    <div class="header">
+                <h1>Your Name</h1>
+                <div class="divider"></div>
+        <div class="contact-row">
+                                                                                                                                                        </div>
+            </div>
+    <div class="content">
+                                    <div class="section">
+                <h2>Education</h2>
+                <div class="edu-item"><div class="edu-degree">B.Sc. in Computer Science &amp; Engineering</div><div class="edu-school">University of Dhaka</div><div class="edu-detail">2014-01 – 2018-05 · 3.85 / 4.00</div></div>            </div>
+                            <div class="section">
+                <h2>Skills</h2>
+                <div class="skill-list"><span class="skill-item">JavaScript / TypeScript</span><span class="skill-item">React / Next.js</span><span class="skill-item">PHP / Laravel</span><span class="skill-item">Node.js / Express</span><span class="skill-item">PostgreSQL / MySQL</span><span class="skill-item">Docker / AWS</span></div>
+            </div>
+                            <div class="section">
+                <h2>Languages</h2>
+                <div class="lang-item"><span>English</span><span>Fluent</span></div><div class="lang-item"><span>Bengali</span><span>Native</span></div>            </div>
+                            <div class="section">
+                <h2>Certifications</h2>
+                <div class="cert-item">AWS Certified Solutions Architect — Amazon Web Services <span style="font-size:9px;color:var(--cv-muted);">(Sep 2026)</span></div>            </div>
+                            <div class="section">
+                <h2>Projects</h2>
+                <div class="project-item"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;"><div class="project-name">Cloud HR &amp; Job Portal</div></div><div class="project-desc">End-to-end recruitment platform with AI resume parser and real-time messaging.</div></div>            </div>
+                        
+        
+        
+        
+            </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV - Sidebar Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cv-primary: var(--primary-color, #1e3a5f);
+            --cv-text: var(--text-color, #1e293b);
+            --cv-bg: var(--bg-color, #ffffff);
+            --cv-muted: #64748b;
+            --cv-border: #e2e8f0;
+            --cv-sidebar-bg: #1e293b;
+            --cv-sidebar-text: #e2e8f0;
+            --cv-sidebar-muted: #94a3b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--cv-text);
+            background: #f1f5f9;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body { overflow: visible !important; }
+        .cv-page {
+            width: 210mm;
+            min-height: auto;
+            margin: 0 auto;
+            display: flex;
+            background: var(--cv-bg);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            align-items: stretch;
+        }
+        @media print {
+            body { background: white; }
+            .cv-page { box-shadow: none; margin: 0; width: 100%; min-height: auto; }
+        }
+        /* Sidebar */
+        .sidebar {
+            width: 35%;
+            min-width: 250px;
+            background: var(--cv-sidebar-bg);
+            color: var(--cv-sidebar-text);
+            padding: 36px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .sidebar-section h3 {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--cv-sidebar-muted);
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Photo */
+        .photo-section { text-align: center; padding-bottom: 8px; }
+        .photo-wrap {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 12px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid rgba(255,255,255,0.2);
+        }
+        .photo-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .photo-fallback {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--cv-primary), #3b82f6);
+            color: white;
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        /* Contact */
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            margin-bottom: 8px;
+            color: var(--cv-sidebar-text);
+            word-break: break-all;
+        }
+        .contact-item svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+            fill: none;
+            stroke: var(--cv-sidebar-muted);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .contact-item a { color: var(--cv-sidebar-text); text-decoration: none; }
+
+        /* Skills */
+        .skill-tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: var(--cv-sidebar-text);
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin: 0 4px 6px 0;
+        }
+
+        /* Languages */
+        .lang-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+        .lang-dots { display: flex; gap: 4px; }
+        .lang-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+        }
+        .lang-dot.filled { background: #3b82f6; }
+
+        /* Main */
+        .main-content {
+            flex: 1;
+            padding: 36px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+        .main-section h2 {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--cv-primary);
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--cv-primary);
+        }
+
+        /* Header */
+        .cv-header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--cv-text);
+            line-height: 1.2;
+        }
+        .cv-header .title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--cv-muted);
+            margin-top: 4px;
+        }
+
+        /* Summary */
+        .summary-text {
+            font-size: 11px;
+            line-height: 1.6;
+            color: var(--cv-muted);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Experience */
+        .exp-item {
+            margin-bottom: 14px;
+            position: relative;
+            padding-left: 14px;
+        }
+        .exp-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--cv-primary);
+        }
+        .exp-item::after {
+            content: '';
+            position: absolute;
+            left: 2.5px;
+            top: 12px;
+            width: 1px;
+            height: calc(100% - 4px);
+            background: var(--cv-border);
+        }
+        .exp-item:last-child::after { display: none; }
+        .exp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2px;
+        }
+        .exp-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--cv-text);
+        }
+        .exp-date {
+            font-size: 10px;
+            color: var(--cv-muted);
+            white-space: nowrap;
+        }
+        .exp-company {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--cv-primary);
+            margin-bottom: 4px;
+        }
+        .exp-desc {
+            font-size: 10.5px;
+            line-height: 1.5;
+            color: var(--cv-muted);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .exp-desc ul { padding-left: 14px; }
+        .exp-desc li { margin-bottom: 2px; word-wrap: break-word; }
+
+        /* Education */
+        .edu-item {
+            margin-bottom: 10px;
+            padding-left: 14px;
+            position: relative;
+        }
+        .edu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--cv-primary);
+        }
+        .edu-degree {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--cv-text);
+        }
+        .edu-school {
+            font-size: 11px;
+            color: var(--cv-primary);
+        }
+        .edu-year {
+            font-size: 10px;
+            color: var(--cv-muted);
+        }
+
+        /* Certifications */
+        .cert-item {
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+        .cert-name { font-weight: 600; }
+        .cert-issuer { color: var(--cv-muted); }
+
+        /* Social */
+        .social-item {
+            font-size: 10.5px;
+            margin-bottom: 6px;
+            color: var(--cv-sidebar-text);
+        }
+        .social-item a { color: #60a5fa; text-decoration: none; }
+
+        /* Projects */
+        .project-item {
+            margin-bottom: 10px;
+        }
+        .project-name {
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .project-desc {
+            font-size: 10.5px;
+            color: var(--cv-muted);
+            line-height: 1.5;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Awards */
+        .award-item {
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+    
+        .item-box, .entry-block, .content-card, .timeline-item, .card-box, .exp-item, .edu-item { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="cv-page">
+    
+    <aside class="sidebar">
+        
+        <div class="photo-section">
+            <div class="photo-wrap">
+                                    <div class="photo-fallback">U</div>
+                            </div>
+        </div>
+
+        
+        <div class="sidebar-section">
+            <h3>Contact</h3>
+                                                                                                                                                                                </div>
+
+        
+                    <div class="sidebar-section">
+                <h3>Key Skills</h3>
+                                    <span class="skill-tag">JavaScript / TypeScript</span>
+                                    <span class="skill-tag">React / Next.js</span>
+                                    <span class="skill-tag">PHP / Laravel</span>
+                                    <span class="skill-tag">Node.js / Express</span>
+                                    <span class="skill-tag">PostgreSQL / MySQL</span>
+                                    <span class="skill-tag">Docker / AWS</span>
+                            </div>
+        
+        
+                    <div class="sidebar-section">
+                <h3>Languages</h3>
+                                                        <div class="lang-item">
+                        <span>English</span>
+                        <div class="lang-dots">
+                                                            <div class="lang-dot filled"></div>
+                                                            <div class="lang-dot filled"></div>
+                                                            <div class="lang-dot filled"></div>
+                                                            <div class="lang-dot filled"></div>
+                                                            <div class="lang-dot filled"></div>
+                                                    </div>
+                    </div>
+                                                        <div class="lang-item">
+                        <span>Bengali</span>
+                        <div class="lang-dots">
+                                                            <div class="lang-dot filled"></div>
+                                                            <div class="lang-dot filled"></div>
+                                                            <div class="lang-dot filled"></div>
+                                                            <div class="lang-dot filled"></div>
+                                                            <div class="lang-dot filled"></div>
+                                                    </div>
+                    </div>
+                            </div>
+        
+        
+            </aside>
+
+    
+    <div class="main-content">
+        
+        <div class="cv-header">
+            <h1>Your Name</h1>
+                    </div>
+
+        
+        
+        
+        
+        
+                    <div class="main-section">
+                <h2>Education</h2>
+                                                        <div class="edu-item">
+                        <div class="edu-degree">B.Sc. in Computer Science &amp; Engineering</div>
+                        <div class="edu-school">University of Dhaka</div>
+                        <div class="edu-year">
+                                                                                                            </div>
+                        <div class="edu-year">
+                                                            2014-01
+                                 – 2018-05                                                                                      · 3.85 / 4.00                         </div>
+                                            </div>
+                            </div>
+        
+        
+                    <div class="main-section">
+                <h2>Certifications</h2>
+                                                        <div class="cert-item">
+                        <span class="cert-name">AWS Certified Solutions Architect</span>
+                         <span class="cert-issuer"> — Amazon Web Services</span>                          <span class="cert-issuer"> (Sep 2026)</span>                     </div>
+                            </div>
+        
+        
+        
+        
+                    <div class="main-section">
+                <h2>Projects</h2>
+                                    <div class="project-item">
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+                            <div class="project-name">Cloud HR &amp; Job Portal</div>
+                                                    </div>
+                                                                            <div class="project-desc">End-to-end recruitment platform with AI resume parser and real-time messaging.</div>
+                                            </div>
+                            </div>
+        
+        
+        
+        
+        
+        
+            </div>
+</div>
+</body>
+</html>

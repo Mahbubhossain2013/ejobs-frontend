@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CV - Dark Navy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --navy-bg: #090d16; --navy-card: #111827; --navy-sidebar: #0b1120; --gold: #f59e0b; --gold-light: #fde68a; --gold-gradient: linear-gradient(135deg, #d97706, #fbbf24); --text: #e2e8f0; --text-muted: #94a3b8; --border: #1e293b; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #050811; color: var(--text); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { overflow: visible !important; }
+        .cv-page { width: 210mm; min-height: auto; margin: 0 auto; background: var(--navy-bg); display: flex;     align-items: stretch;
+        }
+        @media print { body { background: var(--navy-bg); } .cv-page { width: 100%; min-height: auto; } }
+        .sidebar { width: 35%; background: var(--navy-sidebar); border-right: 1px solid var(--border); padding: 26px 20px; display: flex; flex-direction: column; gap: 18px; }
+        .main { flex: 1; padding: 28px 24px; display: flex; flex-direction: column; gap: 18px; background: var(--navy-bg); }
+        .avatar-wrap { width: 84px; height: 84px; border-radius: 50%; margin: 0 auto 12px; padding: 3px; background: var(--gold-gradient); }
+        .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #1e293b; }
+        .avatar-init { width: 100%; height: 100%; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #0f172a; font-family: 'Cinzel', serif; font-size: 30px; font-weight: 700; color: var(--gold); }
+        .name-box { text-align: center; }
+        .name-box h1 { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 1.5px; text-transform: uppercase; }
+        .name-box .title { font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; font-weight: 600; }
+        .gold-divider { width: 36px; height: 2px; background: var(--gold-gradient); margin: 10px auto; border-radius: 2px; }
+        .sec-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: var(--gold); padding-bottom: 5px; border-bottom: 1px solid var(--border); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .contact-item { display: flex; align-items: flex-start; gap: 8px; font-size: 9.5px; color: var(--text-muted); margin-bottom: 6px; word-break: break-all; }
+        .contact-item a { color: var(--gold-light); text-decoration: none; }
+        .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); margin-top: 4px; flex-shrink: 0; }
+        .skill-bar-row { margin-bottom: 6px; }
+        .skill-bar-header { display: flex; justify-content: space-between; font-size: 9.5px; margin-bottom: 2px; color: #f8fafc; }
+        .skill-bar-bg { width: 100%; height: 4px; background: #1e293b; border-radius: 2px; overflow: hidden; }
+        .skill-bar-fill { height: 100%; background: var(--gold-gradient); border-radius: 2px; }
+        .card { background: var(--navy-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+        .card-header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 3px; }
+        .card-title { font-size: 11.5px; font-weight: 700; color: #fff; }
+        .card-badge { font-size: 9px; font-weight: 600; padding: 2px 7px; border-radius: 12px; background: rgba(245,158,11,0.15); color: var(--gold-light); border: 1px solid rgba(245,158,11,0.3); white-space: nowrap; }
+        .card-sub { font-size: 10px; color: var(--gold); font-weight: 600; margin-bottom: 4px; }
+        .card-desc { font-size: 9.5px; line-height: 1.6; color: var(--text-muted); }
+        .card-desc ul { padding-left: 14px; }
+        .pill { display: inline-block; font-size: 9px; padding: 2px 8px; border-radius: 4px; background: #1e293b; border: 1px solid var(--border); color: var(--text-muted); margin: 0 3px 4px 0; }
+        .pill-gold { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color: var(--gold-light); }
+    
+        .item-box, .entry-block, .content-card, .timeline-item, .card-box, .exp-item, .edu-item { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="cv-page">
+    <div class="sidebar">
+        <div>
+            <div class="avatar-wrap">
+                                    <div class="avatar-init">U</div>
+                            </div>
+            <div class="name-box">
+                <h1>Your Name</h1>
+                                <div class="gold-divider"></div>
+            </div>
+        </div>
+
+        <div>
+            <div class="sec-title">Contact</div>
+                                                                                            </div>
+
+                <div>
+            <div class="sec-title">Skills</div>
+                                                            <div class="skill-bar-row">
+                    <div class="skill-bar-header"><span>JavaScript / TypeScript</span><span style="color:var(--gold);font-size:8.5px;">90</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:75%"></div></div>
+                </div>
+                                                                            <div class="skill-bar-row">
+                    <div class="skill-bar-header"><span>React / Next.js</span><span style="color:var(--gold);font-size:8.5px;">90</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:75%"></div></div>
+                </div>
+                                                                            <div class="skill-bar-row">
+                    <div class="skill-bar-header"><span>PHP / Laravel</span><span style="color:var(--gold);font-size:8.5px;">85</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:75%"></div></div>
+                </div>
+                                                                            <div class="skill-bar-row">
+                    <div class="skill-bar-header"><span>Node.js / Express</span><span style="color:var(--gold);font-size:8.5px;">80</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:75%"></div></div>
+                </div>
+                                                                            <div class="skill-bar-row">
+                    <div class="skill-bar-header"><span>PostgreSQL / MySQL</span><span style="color:var(--gold);font-size:8.5px;">85</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:75%"></div></div>
+                </div>
+                                                                            <div class="skill-bar-row">
+                    <div class="skill-bar-header"><span>Docker / AWS</span><span style="color:var(--gold);font-size:8.5px;">75</span></div>
+                    <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:75%"></div></div>
+                </div>
+                                    </div>
+        
+                <div>
+            <div class="sec-title">Languages</div>
+                                            <div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:4px;"><span style="color:#fff;">English</span><span style="color:var(--gold);">Fluent</span></div>
+                                            <div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:4px;"><span style="color:#fff;">Bengali</span><span style="color:var(--gold);">Native</span></div>
+                    </div>
+        
+            </div>
+
+    <div class="main">
+        
+        
+                <div>
+            <div class="sec-title">Education</div>
+                        <div class="card">
+                <div class="card-header">
+                    <div class="card-title">B.Sc. in Computer Science &amp; Engineering</div>
+                    <div class="card-badge">2014-01 – 2018-05</div>
+                </div>
+                <div class="card-sub">University of Dhaka</div>
+                <div style="font-size:9.5px;color:var(--text-muted);">Grade/Result: 3.85 / 4.00</div>            </div>
+                    </div>
+        
+                <div>
+            <div class="sec-title">Projects</div>
+                        <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Cloud HR &amp; Job Portal</div>
+                                    </div>
+                <div class="card-desc">End-to-end recruitment platform with AI resume parser and real-time messaging.</div>            </div>
+                    </div>
+        
+                <div>
+            <div class="sec-title">Certifications</div>
+                                    <div style="font-size:10px;margin-bottom:4px;color:#fff;"><strong style="color:var(--gold-light);">AWS Certified Solutions Architect</strong> — <span style="color:var(--text-muted)">Amazon Web Services</span></div>
+                    </div>
+        
+            </div>
+</div>
+</body>
+</html>

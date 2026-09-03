@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Resume</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-print-color-adjust: exact; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap');
+    </style>
+</head>
+<body class="bg-white">
+    <div class="p-12 space-y-10">
+
+        <!-- Header: Name & Contact -->
+        <header class="text-center border-b border-gray-200 pb-8">
+            <h1 class="text-5xl font-extrabold tracking-tight text-gray-800">John Doe</h1>
+            <h2 class="text-xl font-medium text-green-600 mt-2">Professional Title</h2>
+            <div class="flex justify-center items-center gap-6 mt-4 text-xs text-gray-500">
+                <span>john.doe@example.com</span>
+                <span>•</span>
+                <span>+880 1712-345678</span>
+                <span>•</span>
+                <span>Dhaka, Bangladesh</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="grid grid-cols-3 gap-12">
+            
+            <!-- Left Column: Bio & Skills -->
+            <div class="col-span-1 space-y-8">
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">About Me</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">A short professional summary about your career goals and expertise.</p>
+                </div>
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Skills</h3>
+                    <div class="flex flex-wrap gap-2">
+                                                    <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-xs font-medium">JavaScript / TypeScript</span>
+                                                    <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-xs font-medium">React / Next.js</span>
+                                                    <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-xs font-medium">PHP / Laravel</span>
+                                                    <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-xs font-medium">Node.js / Express</span>
+                                                    <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-xs font-medium">PostgreSQL / MySQL</span>
+                                                    <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-xs font-medium">Docker / AWS</span>
+                                            </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Experience & Education -->
+            <div class="col-span-2 space-y-10">
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-widest text-gray-400 mb-6 border-b pb-2">Work Experience</h3>
+                    <div class="space-y-6">
+                                            </div>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-widest text-gray-400 mb-6 border-b pb-2">Education</h3>
+                    <div class="space-y-4">
+                                                <div class="flex">
+                            <div class="w-1/4 text-xs font-bold text-gray-500">Year</div>
+                            <div class="w-3/4">
+                                <h4 class="text-base font-bold text-gray-800">B.Sc. in Computer Science &amp; Engineering</h4>
+                                <p class="text-sm font-medium text-gray-600">University of Dhaka</p>
+                            </div>
+                        </div>
+                                            </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

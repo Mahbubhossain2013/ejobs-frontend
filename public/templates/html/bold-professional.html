@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV - Bold Professional</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --cv-primary: #0f0f0f; --cv-accent: #2563eb; --cv-text: #0f0f0f; --cv-bg: #ffffff; --cv-muted: #6b7280; --cv-border: #e5e7eb; --cv-card-bg: #f9fafb; --cv-dark-card: #1a1a2e; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; color: var(--cv-text); background: #f1f5f9; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { overflow: visible !important; }
+        .cv-page { width: 210mm; min-height: auto; margin: 0 auto; background: var(--cv-bg); box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+        @media print { body { background: white; } .cv-page { box-shadow: none; margin: 0; width: 100%; } }
+        .bold-header {
+            background: var(--cv-primary);
+            padding: 28px 36px 24px;
+            position: relative;
+        }
+        .bold-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--cv-accent);
+        }
+        .bold-header h1 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 34px;
+            font-weight: 900;
+            color: white;
+            letter-spacing: -1px;
+            line-height: 1.1;
+        }
+        .bold-header .title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 400;
+            color: #93a3b8;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+        .bold-contact {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 20px;
+            margin-top: 12px;
+            font-size: 10px;
+            color: #9ca3af;
+        }
+        .bold-contact span { display: flex; align-items: center; gap: 5px; }
+        .bold-contact svg { width: 12px; height: 12px; fill: none; stroke: var(--cv-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .bold-contact a { color: #60a5fa; text-decoration: none; }
+
+        .content { padding: 24px 36px; display: flex; flex-direction: column; gap: 20px; }
+
+        .section {
+            position: relative;
+        }
+        .section h2 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--cv-primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section h2::after {
+            content: '';
+            flex: 1;
+            height: 3px;
+            background: var(--cv-accent);
+        }
+
+        .summary-text {
+            font-size: 11px;
+            line-height: 1.7;
+            color: var(--cv-muted);
+            padding: 10px 14px;
+            background: var(--cv-card-bg);
+            border-radius: 6px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .skills-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+        .skill-chip {
+            background: var(--cv-primary);
+            color: white;
+            font-size: 9.5px;
+            padding: 5px 14px;
+            font-weight: 500;
+            border-radius: 4px;
+            letter-spacing: 0.3px;
+        }
+
+        .exp-item {
+            margin-bottom: 12px;
+            padding: 12px 16px;
+            background: var(--cv-card-bg);
+            border-radius: 8px;
+            border-left: 4px solid var(--cv-accent);
+        }
+        .exp-row { display: flex; justify-content: space-between; align-items: flex-start; }
+        .exp-title { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: var(--cv-primary); }
+        .exp-date { font-size: 9.5px; color: var(--cv-muted); white-space: nowrap; margin-top: 2px; }
+        .exp-company { font-size: 11px; color: var(--cv-accent); font-weight: 600; margin: 3px 0 4px; }
+        .exp-desc { font-size: 10.5px; line-height: 1.5; color: var(--cv-muted); word-wrap: break-word; overflow-wrap: break-word; }
+        .exp-desc ul { padding-left: 14px; }
+        .exp-desc li { margin-bottom: 2px; word-wrap: break-word; }
+
+        .edu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .edu-card {
+            padding: 12px 14px;
+            background: var(--cv-card-bg);
+            border-radius: 8px;
+            border-top: 3px solid var(--cv-accent);
+        }
+        .edu-degree { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; color: var(--cv-primary); }
+        .edu-school { font-size: 10.5px; color: var(--cv-accent); margin: 2px 0; }
+        .edu-detail { font-size: 9.5px; color: var(--cv-muted); }
+
+        .cert-item { font-size: 10.5px; margin-bottom: 5px; padding: 4px 10px; background: var(--cv-card-bg); border-radius: 4px; }
+        .cert-name { font-weight: 600; color: var(--cv-primary); }
+        .cert-issuer { color: var(--cv-muted); }
+
+        .project-item { margin-bottom: 8px; padding: 8px 12px; background: var(--cv-card-bg); border-radius: 6px; }
+        .project-name { font-size: 11px; font-weight: 700; color: var(--cv-primary); }
+        .project-desc { font-size: 10px; color: var(--cv-muted); line-height: 1.5; margin-top: 2px; word-wrap: break-word; overflow-wrap: break-word; }
+
+        .lang-row { display: flex; flex-wrap: wrap; gap: 10px; }
+        .lang-chip {
+            font-size: 10px;
+            padding: 4px 12px;
+            border: 1px solid var(--cv-border);
+            border-radius: 20px;
+            background: white;
+        }
+        .lang-name { font-weight: 600; }
+        .lang-level { color: var(--cv-muted); }
+
+        .award-item { font-size: 10.5px; margin-bottom: 4px; padding: 4px 10px; background: var(--cv-card-bg); border-radius: 4px; }
+
+        .two-col-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    
+        .item-box, .entry-block, .content-card, .timeline-item, .card-box, .exp-item, .edu-item { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="cv-page">
+    <div class="bold-header">
+                <h1>Your Name</h1>
+                <div class="bold-contact">
+                                                                                                                                                        </div>
+            </div>
+
+    <div class="content">
+        
+                    <div class="section">
+                <h2>Technical Skills</h2>
+                <div class="skills-grid"><span class="skill-chip">JavaScript / TypeScript</span><span class="skill-chip">React / Next.js</span><span class="skill-chip">PHP / Laravel</span><span class="skill-chip">Node.js / Express</span><span class="skill-chip">PostgreSQL / MySQL</span><span class="skill-chip">Docker / AWS</span></div>
+            </div>
+        
+        
+                    <div class="section">
+                <h2>Education</h2>
+                <div class="edu-grid">
+                                            <div class="edu-card">
+                            <div class="edu-degree">B.Sc. in Computer Science &amp; Engineering</div>
+                            <div class="edu-school">University of Dhaka</div>
+                            <div class="edu-detail">2014-01 – 2018-05 · 3.85 / 4.00</div>
+                        </div>
+                                    </div>
+            </div>
+        
+                    <div class="section">
+                <h2>Projects</h2>
+                                    <div class="project-item">
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+                            <div class="project-name">Cloud HR &amp; Job Portal</div>
+                                                    </div>
+                                                                            <div class="project-desc">End-to-end recruitment platform with AI resume parser and real-time messaging.</div>
+                                            </div>
+                            </div>
+        
+                    <div class="section">
+                <h2>Certifications</h2>
+                                                        <div class="cert-item"><span class="cert-name">AWS Certified Solutions Architect</span> <span class="cert-issuer">— Amazon Web Services</span> <span style="font-size:9px;color:var(--cv-muted);">(Sep 2026)</span></div>
+                            </div>
+        
+        
+                    <div class="section">
+                <h2>Languages</h2>
+                <div class="lang-row">
+                                                                    <span class="lang-chip"><span class="lang-name">English</span><span class="lang-level"> (Fluent)</span></span>
+                                                                    <span class="lang-chip"><span class="lang-name">Bengali</span><span class="lang-level"> (Native)</span></span>
+                                    </div>
+            </div>
+        
+        
+        
+        
+            </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>John Doe - Executive Navy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: sans-serif; background: #152232; color: #fff; width: 794px; height: 1123px; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px; }
+        .top-row { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; align-items: start; }
+        .avatar-wrap { width: 130px; height: 140px; border-radius: 12px; overflow: hidden; background: #1f3148; margin-bottom: 12px; }
+        .avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .name-big { font-size: 30px; font-weight: 900; line-height: 1.1; margin-bottom: 6px; }
+        .name-gold { color: #f5a623; }
+        .title-badge { background: #f5a623; color: #000; font-size: 11px; font-weight: 800; padding: 4px 14px; border-radius: 20px; display: inline-block; }
+        .profile-card { background: #f5a623; color: #000; border-radius: 20px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+        .profile-card-title { font-size: 13px; font-weight: 900; font-style: italic; text-transform: uppercase; }
+        .profile-card-desc { font-size: 10px; line-height: 1.5; color: #1c1917; font-weight: 500; }
+        .body-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1; }
+        .sec-head { font-size: 13px; font-weight: 900; font-style: italic; color: #f5a623; text-transform: uppercase; border-bottom: 2px solid #f5a623; padding-bottom: 4px; margin-bottom: 12px; }
+        .entry-title { font-size: 11.5px; font-weight: 800; color: #f5a623; margin-bottom: 2px; }
+        .entry-sub { font-size: 10.5px; color: #94a3b8; font-weight: 600; margin-bottom: 2px; }
+        .entry-desc { font-size: 9.5px; line-height: 1.5; color: #cbd5e1; }
+        .bullet-list { list-style: none; padding: 0; }
+        .bullet-list li { font-size: 10.5px; color: #e2e8f0; margin-bottom: 6px; position: relative; padding-left: 14px; }
+        .bullet-list li::before { content: '-'; position: absolute; left: 0; color: #f5a623; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="top-row">
+        <div>
+            <div class="avatar-wrap">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400" alt="Photo">
+            </div>
+            <div class="name-big">JOHN <span class="name-gold">DOE</span></div>
+            <div class="title-badge">SENIOR SOFTWARE ENGINEER</div>
+        </div>
+        <div class="profile-card">
+            <div class="profile-card-title">EXECUTIVE PROFILE</div>
+            <div class="profile-card-desc">Passionate Software Engineer with 6+ years of experience in architecting robust, scalable web applications using modern tech stacks.</div>
+            <div style="font-size: 10px; font-weight: bold;">john.doe@example.com | +880 1712-345678 | Dhaka</div>
+        </div>
+    </div>
+    <div class="body-grid">
+        <div>
+            <div class="sec-head">EXPERIENCE</div>
+            <div class="entry-title">Lead Software Engineer</div>
+            <div class="entry-sub">Tech Innovations Ltd | 2021 - Present</div>
+            <div class="entry-desc">Led architecture and development of enterprise microservices.</div>
+            <div style="height: 15px;"></div>
+            <div class="entry-title">Full Stack Developer</div>
+            <div class="entry-sub">Digital Solutions Inc | 2018 - 2020</div>
+            <div class="entry-desc">Built RESTful APIs and modern frontend dashboards using Laravel and Vue.js.</div>
+        </div>
+        <div>
+            <div class="sec-head">EDUCATION</div>
+            <div class="entry-title">B.Sc. in Computer Science</div>
+            <div class="entry-sub">University of Dhaka | 2014 - 2018</div>
+            <div style="height: 15px;"></div>
+            <div class="sec-head">SKILLS</div>
+            <ul class="bullet-list">
+                <li>JavaScript / TypeScript / React / Next.js</li>
+                <li>PHP / Laravel / Node.js</li>
+                <li>PostgreSQL / MySQL / Redis</li>
+                <li>Docker / AWS Cloud Architecture</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

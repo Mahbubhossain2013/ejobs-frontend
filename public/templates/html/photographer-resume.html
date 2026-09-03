@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CV - Photographer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --peach: #f97316; --peach-bg: #ffedd5; --text: #1c1917; --muted: #78716c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #ffedd5; color: var(--text); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { overflow: visible !important; }
+        .cv-page { width: 210mm; min-height: auto; margin: 0 auto; background: #fff; display: flex;     align-items: stretch;
+        }
+        @media print { body { background: #fff; } .cv-page { width: 100%; min-height: auto; } }
+        .main { flex: 1; padding: 28px 24px; display: flex; flex-direction: column; gap: 16px; }
+        .side { width: 34%; background: var(--peach-bg); padding: 28px 18px; display: flex; flex-direction: column; gap: 16px; }
+        .sec-title { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #c2410c; border-bottom: 2px solid #fdba74; padding-bottom: 3px; margin-bottom: 8px; }
+        .slider-bar { width: 100%; height: 6px; background: #fed7aa; border-radius: 3px; overflow: hidden; margin-top: 3px; }
+        .slider-fill { height: 100%; background: var(--peach); border-radius: 3px; }
+        .exp-item { margin-bottom: 8px; }
+        .exp-head { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #1c1917; }
+        .exp-co { font-size: 9.5px; color: var(--peach); font-weight: 600; margin-bottom: 2px; }
+        .exp-desc { font-size: 9px; color: #57534e; line-height: 1.5; }
+        .exp-desc ul { padding-left: 14px; }
+    
+        .item-box, .entry-block, .content-card, .timeline-item, .card-box, .exp-item, .edu-item { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="cv-page">
+    <div class="main">
+        <div style="display:flex;align-items:center;gap:16px;border-bottom:2px solid #fed7aa;padding-bottom:14px;">
+                        <div>
+                <h1 style="font-size:22px;font-weight:800;">Jonathan Stapler</h1>
+                <div style="font-size:10.5px;color:var(--peach);font-weight:700;"></div>
+            </div>
+        </div>
+
+        
+            </div>
+
+    <div class="side">
+        <div>
+            <div class="sec-title">Contact</div>
+                                            </div>
+
+                <div>
+            <div class="sec-title">Expertise</div>
+                                                <div style="margin-bottom:6px;">
+                <div style="font-size:9px;font-weight:600;">JavaScript / TypeScript</div>
+                <div class="slider-bar"><div class="slider-fill" style="width:80%"></div></div>
+            </div>
+                                                            <div style="margin-bottom:6px;">
+                <div style="font-size:9px;font-weight:600;">React / Next.js</div>
+                <div class="slider-bar"><div class="slider-fill" style="width:80%"></div></div>
+            </div>
+                                                            <div style="margin-bottom:6px;">
+                <div style="font-size:9px;font-weight:600;">PHP / Laravel</div>
+                <div class="slider-bar"><div class="slider-fill" style="width:80%"></div></div>
+            </div>
+                                                            <div style="margin-bottom:6px;">
+                <div style="font-size:9px;font-weight:600;">Node.js / Express</div>
+                <div class="slider-bar"><div class="slider-fill" style="width:80%"></div></div>
+            </div>
+                                                            <div style="margin-bottom:6px;">
+                <div style="font-size:9px;font-weight:600;">PostgreSQL / MySQL</div>
+                <div class="slider-bar"><div class="slider-fill" style="width:80%"></div></div>
+            </div>
+                                                            <div style="margin-bottom:6px;">
+                <div style="font-size:9px;font-weight:600;">Docker / AWS</div>
+                <div class="slider-bar"><div class="slider-fill" style="width:80%"></div></div>
+            </div>
+                                </div>
+        
+                <div style="margin-top:10px;">
+            <div class="sec-title">Education</div>
+                        <div style="margin-bottom:6px;">
+                <div style="font-size:9.5px;font-weight:700;">B.Sc. in Computer Science &amp; Engineering</div>
+                <div style="font-size:8.5px;color:var(--muted)">University of Dhaka</div>
+            </div>
+                    </div>
+            </div>
+</div>
+</body>
+</html>

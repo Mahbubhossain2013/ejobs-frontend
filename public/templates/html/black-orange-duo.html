@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CV - Orange Duo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #000; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { overflow: visible !important; }
+        .cv-page { width: 210mm; min-height: auto; margin: 0 auto; background: #000; display: flex;     align-items: stretch;
+        }
+        @media print { body { background: #000; } .cv-page { width: 100%; min-height: auto; } }
+
+        /* Left Column (Black) */
+        .left-col { width: 44%; background: #000; color: #fff; padding: 32px 24px; display: flex; flex-direction: column; gap: 18px; }
+        .name-title-left { font-family: 'Montserrat', sans-serif; font-size: 30px; font-weight: 900; color: #f59e0b; line-height: 1.1; margin-bottom: 4px; }
+        .subtitle-left { font-size: 13px; font-weight: 500; color: #fff; margin-bottom: 14px; }
+
+        .photo-frame { width: 145px; height: 145px; margin: 0 auto 10px; border: 3px solid #f59e0b; padding: 3px; background: #000; }
+        .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-init { width: 100%; height: 100%; background: #1c1917; display: flex; align-items: center; justify-content: center; font-size: 46px; font-weight: 800; color: #f59e0b; font-family: 'Montserrat', sans-serif; }
+
+        .sec-orange { font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 900; font-style: italic; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #f59e0b; padding-bottom: 4px; margin-bottom: 10px; display: block; }
+        .left-desc { font-size: 10px; line-height: 1.6; color: #d4d4d8; }
+
+        .bullet-list-left { list-style: none; padding: 0; }
+        .bullet-list-left li { font-size: 10.5px; color: #e4e4e7; margin-bottom: 5px; position: relative; padding-left: 14px; }
+        .bullet-list-left li::before { content: "-"; position: absolute; left: 0; color: #f59e0b; font-weight: 700; }
+
+        .contact-item { display: flex; align-items: center; gap: 10px; font-size: 10.5px; color: #e4e4e7; margin-bottom: 9px; word-break: break-all; }
+        .contact-icon { width: 24px; height: 24px; border-radius: 50%; background: #fff; color: #000; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+
+        /* Right Column (Warm Golden Amber) */
+        .right-col { width: 56%; background: #f59e0b; color: #000; padding: 32px 28px; display: flex; flex-direction: column; gap: 18px; }
+        .sec-black { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 900; font-style: italic; color: #000; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 10px; display: block; }
+
+        .item-box { margin-bottom: 12px; }
+        .item-title { font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 800; color: #000; margin-bottom: 2px; }
+        .item-sub { font-size: 11px; font-weight: 700; color: #1c1917; margin-bottom: 2px; }
+        .item-desc { font-size: 10px; line-height: 1.5; color: #1c1917; }
+
+        .bullet-list-right { list-style: none; padding: 0; }
+        .bullet-list-right li { font-size: 11px; color: #000; font-weight: 700; margin-bottom: 4px; position: relative; padding-left: 14px; }
+        .bullet-list-right li::before { content: "-"; position: absolute; left: 0; color: #000; font-weight: 900; }
+
+        .interests-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; margin-top: 6px; }
+        .interest-card { background: rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+        .interest-icon { font-size: 18px; }
+        .interest-name { font-size: 8.5px; font-weight: 800; color: #000; text-transform: uppercase; }
+    
+        .item-box, .entry-block, .content-card, .timeline-item, .card-box, .exp-item, .edu-item { page-break-inside: avoid; break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="cv-page">
+    <div class="left-col">
+        <div>
+            <h1 class="name-title-left">Your Name</h1>
+            <div class="subtitle-left"></div>
+        </div>
+
+        <div class="photo-frame">
+                            <div class="photo-init">Y</div>
+                    </div>
+
+        
+                <div>
+            <div class="sec-orange">SPECIALIZATIONS</div>
+            <ul class="bullet-list-left">
+                                                <li>JavaScript / TypeScript</li>                                                <li>React / Next.js</li>                                                <li>PHP / Laravel</li>                                                <li>Node.js / Express</li>                                                <li>PostgreSQL / MySQL</li>                                                <li>Docker / AWS</li>                            </ul>
+        </div>
+        
+        <div>
+            <div class="sec-orange">GET IN TOUCH</div>
+            <div>
+                                                                            </div>
+        </div>
+    </div>
+
+    <div class="right-col">
+        
+                <div>
+            <div class="sec-black">ACADEMIC HISTORY</div>
+                        <div class="item-box">
+                <div class="item-title">University of Dhaka (2014-01 - 2018-05)</div>
+                <div class="item-sub">B.Sc. in Computer Science &amp; Engineering</div>
+                            </div>
+                    </div>
+        
+                <div>
+            <div class="sec-black">LANGUAGES</div>
+            <ul class="bullet-list-right">
+                                                <li>English <span>(Fluent)</span></li>
+                                                <li>Bengali <span>(Native)</span></li>
+                            </ul>
+        </div>
+        
+            </div>
+</div>
+</body>
+</html>

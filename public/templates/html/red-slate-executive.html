@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CV - Red Slate Executive</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Dancing+Script:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #e2e8f0; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { overflow: visible !important; }
+        .cv-page { width: 210mm; min-height: auto; height: auto; margin: 0 auto; background: #fff; padding: 32px 36px; display: flex; flex-direction: column; gap: 16px;     align-items: stretch;
+        }
+        @media print { body { background: #fff; } .cv-page { width: 100%; min-height: auto; height: auto; page-break-after: auto; } }
+
+        .header-grid { display: grid; grid-template-columns: 90px 1fr 180px; gap: 20px; align-items: center; border-bottom: 2px solid #ef4444; padding-bottom: 16px; }
+        .avatar-ring { width: 85px; height: 85px; border-radius: 50%; border: 3px solid #ef4444; overflow: hidden; background: #1c1917; }
+        .avatar-ring img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-init { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 800; color: #ef4444; }
+
+        .header-name { font-family: 'Montserrat', sans-serif; font-size: 26px; font-weight: 900; letter-spacing: 1px; color: #111; }
+        .header-sub { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px; }
+        .about-pill { background: #ef4444; color: #fff; font-family: 'Montserrat', sans-serif; font-size: 9.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 3px 12px; display: inline-block; }
+
+        .contact-right { font-size: 9px; color: #475569; display: flex; flex-direction: column; gap: 4px; text-align: right; }
+
+        .bar-red { background: #ef4444; color: #fff; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 5px 12px; margin-bottom: 8px; }
+        .bar-slate { background: #334155; color: #fff; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 5px 12px; margin-bottom: 8px; }
+
+        .mid-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+        .edu-item { margin-bottom: 6px; font-size: 9.5px; line-height: 1.4; color: #334155; }
+        .edu-item strong { color: #000; font-size: 10px; }
+
+        .skill-bar-red { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+        .skill-fill-red { height: 100%; background: #ef4444; }
+
+        .exp-timeline { border-left: 2px solid #e2e8f0; margin-left: 100px; padding-left: 16px; }
+        .exp-item-block { position: relative; margin-bottom: 14px; page-break-inside: avoid; break-inside: avoid; }
+        .exp-co-label { position: absolute; left: -116px; top: 0; width: 90px; text-align: right; font-size: 9.5px; font-weight: 800; color: #111; }
+        .exp-co-label::after { content: ''; position: absolute; right: -21px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+
+        .exp-pos { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 800; color: #111; text-transform: uppercase; }
+        .exp-desc { font-size: 9.5px; line-height: 1.5; color: #475569; }
+
+        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: end; margin-top: auto; padding-top: 10px; border-top: 2px solid #334155; }
+        .signature-box { text-align: right; font-family: 'Dancing Script', cursive; font-size: 24px; color: #111; }
+    </style>
+</head>
+<body>
+<div class="cv-page">
+    <div class="header-grid">
+        <div class="avatar-ring">
+                            <div class="avatar-init">J</div>
+                    </div>
+        <div>
+            <h1 class="header-name">JOHN DOE</h1>
+            <div class="header-sub"></div>
+            <div class="about-pill">ABOUT ME</div>
+        </div>
+        <div class="contact-right">
+                                                        </div>
+    </div>
+
+    
+    <div class="mid-grid">
+        <div>
+            <div class="bar-red">FOLLOW ME</div>
+            <div style="font-size:9.5px;color:#334155;line-height:1.6;">
+                                                            </div>
+        </div>
+
+        <div>
+            <div class="bar-slate">EDUCATION</div>
+                                            <div class="edu-item">
+                    <strong>B.Sc. in Computer Science &amp; Engineering</strong><br>
+                    University of Dhaka (2014-01-2018-05)
+                </div>
+                                    </div>
+
+        <div>
+            <div class="bar-red">SKILLS</div>
+                                                                            <div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;margin-bottom:2px;"><span>JavaScript / TypeScript</span><span>90%</span></div>
+                <div class="skill-bar-red"><div class="skill-fill-red" style="width: 90%;"></div></div>
+                                                                                <div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;margin-bottom:2px;"><span>React / Next.js</span><span>80%</span></div>
+                <div class="skill-bar-red"><div class="skill-fill-red" style="width: 80%;"></div></div>
+                                                                                <div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;margin-bottom:2px;"><span>PHP / Laravel</span><span>85%</span></div>
+                <div class="skill-bar-red"><div class="skill-fill-red" style="width: 85%;"></div></div>
+                                                                                <div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;margin-bottom:2px;"><span>Node.js / Express</span><span>75%</span></div>
+                <div class="skill-bar-red"><div class="skill-fill-red" style="width: 75%;"></div></div>
+                                                                                <div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;margin-bottom:2px;"><span>PostgreSQL / MySQL</span><span>90%</span></div>
+                <div class="skill-bar-red"><div class="skill-fill-red" style="width: 90%;"></div></div>
+                                                                                <div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;margin-bottom:2px;"><span>Docker / AWS</span><span>80%</span></div>
+                <div class="skill-bar-red"><div class="skill-fill-red" style="width: 80%;"></div></div>
+                                                    </div>
+    </div>
+
+    
+    <div class="bottom-grid">
+        <div>
+            <div class="bar-red">REFERENCE</div>
+                    </div>
+
+        <div class="signature-box">
+            <div style="font-size:10px;font-family:'Montserrat',sans-serif;font-weight:700;color:#64748b;text-transform:uppercase;">Signed</div>
+            <div>John Doe</div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

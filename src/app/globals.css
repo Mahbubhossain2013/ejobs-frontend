@@ -1,0 +1,448 @@
+@import url('https://fonts.maateen.me/solaiman-lipi/font.css');
+@import url('https://fonts.maateen.me/kalpurush/font.css');
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================
+   DESIGN TOKENS
+   ============================================ */
+:root {
+  /* --- Colors --- */
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 98%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 161 95% 30%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 161 95% 30%;
+  --ring: 161 95% 30%;
+  --radius: 0.5rem;
+  --chart-1: 12 76% 61%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
+
+  /* --- Layout Surfaces --- */
+  --surface-page: 220 14% 96%;
+  --surface-sidebar: 220 14% 95%;
+  --surface-footer: 222 30% 14%;
+  --surface-footer-foreground: 0 0% 90%;
+  --surface-navbar: 0 0% 100%;
+  --surface-card-hover: 220 14% 94%;
+
+  /* --- Typography Scale (px) — base: 22px --- */
+  --font-size-xs: 0.636rem;     /* 14px — captions, badges, meta */
+  --font-size-sm: 0.727rem;     /* 16px — body small, labels */
+  --font-size-base: 1rem;       /* 22px — body default */
+  --font-size-lg: 1.091rem;     /* 24px — lead text, card titles */
+  --font-size-xl: 1.273rem;     /* 28px — H6 */
+  --font-size-2xl: 1.545rem;    /* 34px — H5 */
+  --font-size-3xl: 1.818rem;    /* 40px — H4 */
+  --font-size-4xl: 2.182rem;    /* 48px — H3 */
+  --font-size-5xl: 2.727rem;    /* 60px — H2 */
+  --font-size-6xl: 3.455rem;    /* 76px — H1 */
+
+  /* --- Semantic Typography Tokens --- */
+  --font-display: 3.455rem;     /* 76px — hero display, landing banners */
+  --font-headline: 2.727rem;    /* 60px — page headlines */
+  --font-title: 2.182rem;       /* 48px — section titles */
+  --font-subtitle: 1.545rem;    /* 34px — subsection titles */
+  --font-paragraph: 1rem;       /* 22px — body/paragraph text */
+  --font-lead: 1.091rem;        /* 24px — lead/intro paragraph */
+  --font-caption: 0.727rem;     /* 16px — captions, descriptions */
+  --font-meta: 0.636rem;        /* 14px — metadata, badges, labels */
+  --font-overline: 0.636rem;    /* 14px — overline/category labels (uppercase) */
+
+  /* --- Line Heights --- */
+  --leading-tight: 1.2;
+  --leading-snug: 1.3;
+  --leading-normal: 1.55;
+  --leading-relaxed: 1.65;
+
+  /* --- Spacing Scale --- */
+  --spacing-section: 4rem;
+  --spacing-card: 1.5rem;
+}
+
+.dark {
+  --background: 225 41% 12%;
+  --foreground: 0 0% 98%;
+  --card: 225 41% 15%;
+  --card-foreground: 0 0% 98%;
+  --popover: 225 41% 14%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 161 95% 30%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 161 95% 30%;
+  --ring: 161 95% 30%;
+  --chart-1: 220 70% 50%;
+  --chart-2: 160 60% 45%;
+  --chart-3: 30 80% 55%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+
+  /* Dark mode layout surfaces */
+  --surface-page: 225 41% 11%;
+  --surface-sidebar: 225 35% 13%;
+  --surface-footer: 225 45% 8%;
+  --surface-footer-foreground: 0 0% 80%;
+  --surface-navbar: 225 41% 12%;
+  --surface-card-hover: 225 38% 16%;
+}
+
+@theme {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: var(--primary-color, hsl(var(--primary)));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  /* Layout surface tokens */
+  --color-surface-page: hsl(var(--surface-page));
+  --color-surface-sidebar: hsl(var(--surface-sidebar));
+  --color-surface-footer: hsl(var(--surface-footer));
+  --color-surface-footer-foreground: hsl(var(--surface-footer-foreground));
+  --color-surface-navbar: hsl(var(--surface-navbar));
+  --color-surface-card-hover: hsl(var(--surface-card-hover));
+
+  --color-sidebar: hsl(var(--surface-sidebar));
+  --color-sidebar-foreground: hsl(var(--foreground));
+  --color-sidebar-primary: hsl(var(--primary));
+  --color-sidebar-primary-foreground: hsl(var(--primary-foreground));
+  --color-sidebar-accent: hsl(var(--accent));
+  --color-sidebar-accent-foreground: hsl(var(--accent-foreground));
+  --color-sidebar-border: hsl(var(--border));
+  --color-sidebar-ring: hsl(var(--ring));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 2.5);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+}
+
+/* ============================================
+   GLOBAL TYPOGRAPHY SYSTEM
+   ============================================ */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-size: var(--app-font-size, 22px);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-surface-page text-foreground;
+    font-family: var(--font-bangla, "Hind Siliguri"), var(--font-english, "Inter"), sans-serif;
+    font-size: var(--font-size-base);
+    line-height: var(--leading-normal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* --- Heading Hierarchy --- */
+  h1, .h1 {
+    font-size: var(--font-size-4xl);
+    line-height: var(--leading-tight);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+
+  h2, .h2 {
+    font-size: var(--font-size-3xl);
+    line-height: var(--leading-tight);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  h3, .h3 {
+    font-size: var(--font-size-2xl);
+    line-height: var(--leading-snug);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  h4, .h4 {
+    font-size: var(--font-size-xl);
+    line-height: var(--leading-snug);
+    font-weight: 600;
+  }
+
+  h5, .h5 {
+    font-size: var(--font-size-lg);
+    line-height: var(--leading-normal);
+    font-weight: 600;
+  }
+
+  h6, .h6 {
+    font-size: var(--font-size-base);
+    line-height: var(--leading-normal);
+    font-weight: 600;
+  }
+
+  /* --- Semantic Typography Classes --- */
+  .font-display {
+    font-size: var(--font-display);
+    line-height: var(--leading-tight);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .font-headline {
+    font-size: var(--font-headline);
+    line-height: var(--leading-tight);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+
+  .font-title {
+    font-size: var(--font-title);
+    line-height: var(--leading-tight);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .font-subtitle {
+    font-size: var(--font-subtitle);
+    line-height: var(--leading-snug);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  .font-paragraph {
+    font-size: var(--font-paragraph);
+    line-height: var(--leading-normal);
+    font-weight: 400;
+  }
+
+  .font-lead {
+    font-size: var(--font-lead);
+    line-height: var(--leading-relaxed);
+    font-weight: 400;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .font-caption {
+    font-size: var(--font-caption);
+    line-height: var(--leading-normal);
+    font-weight: 400;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .font-meta {
+    font-size: var(--font-meta);
+    line-height: var(--leading-normal);
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .font-overline {
+    font-size: var(--font-overline);
+    line-height: var(--leading-normal);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* --- Body text --- */
+  p, .body {
+    font-size: var(--font-size-base);
+    line-height: var(--leading-normal);
+  }
+
+  .lead {
+    font-size: var(--font-size-lg);
+    line-height: var(--leading-relaxed);
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* --- Captions & small text --- */
+  small, .caption {
+    font-size: var(--font-size-sm);
+    line-height: var(--leading-normal);
+    color: hsl(var(--muted-foreground));
+  }
+
+  .text-xs, .text-\[10px\] {
+    line-height: var(--leading-normal);
+  }
+
+  /* --- Button text --- */
+  button, .btn-text {
+    font-size: var(--font-size-sm);
+    line-height: var(--leading-normal);
+  }
+
+  /* --- Responsive scaling --- */
+  @media (max-width: 640px) {
+    html { font-size: var(--app-font-size-phone, var(--app-font-size, 13px)); }
+    h1, .h1 { font-size: var(--font-size-3xl); }
+    h2, .h2 { font-size: var(--font-size-2xl); }
+    h3, .h3 { font-size: var(--font-size-xl); }
+    h4, .h4 { font-size: var(--font-size-lg); }
+    .font-display { font-size: var(--font-size-5xl); }
+    .font-headline { font-size: var(--font-size-4xl); }
+  }
+
+  @media (min-width: 641px) and (max-width: 1024px) {
+    html { font-size: var(--app-font-size-tablet, var(--app-font-size, 14px)); }
+    h1, .h1 { font-size: calc(var(--font-size-4xl) * 0.9); }
+    .font-display { font-size: var(--font-size-5xl); }
+  }
+}
+
+/* ============================================
+   COMPONENT SURFACE STYLES
+   ============================================ */
+@layer components {
+  /* --- Card with subtle background + hover --- */
+  .card-surface {
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.75rem;
+    padding: var(--spacing-card);
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .card-surface:hover {
+    background-color: hsl(var(--surface-card-hover));
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  }
+
+  .dark .card-surface:hover {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+  }
+
+  /* --- Sidebar surface --- */
+  .sidebar-surface {
+    background-color: hsl(var(--surface-sidebar));
+    border-right: 1px solid hsl(var(--border));
+  }
+
+  /* --- Footer surface --- */
+  .footer-surface {
+    background-color: hsl(var(--surface-footer));
+    color: hsl(var(--surface-footer-foreground));
+  }
+
+  .footer-surface a {
+    color: hsl(var(--surface-footer-foreground));
+    transition: color 0.15s ease;
+  }
+
+  .footer-surface a:hover {
+    color: hsl(var(--primary));
+  }
+
+  /* --- Navbar surface --- */
+  .navbar-surface {
+    background-color: hsl(var(--surface-navbar) / 0.95);
+    backdrop-filter: blur(8px);
+  }
+
+  /* --- Main content area --- */
+  .main-surface {
+    background-color: hsl(var(--surface-page));
+  }
+
+  /* --- Section spacing --- */
+  .section-gap {
+    gap: var(--spacing-section);
+  }
+}
+
+/* ============================================
+   THIN SCROLLBAR
+   ============================================ */
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: hsl(214.3 31.8% 75%) transparent !important;
+}
+
+.dark * {
+  scrollbar-color: hsl(217.2 32.6% 30%) transparent !important;
+}
+
+*::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: hsl(214.3 31.8% 75%) !important;
+  border-radius: 999px !important;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background-color: hsl(217.2 32.6% 30%) !important;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(214.3 31.8% 60%) !important;
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(217.2 32.6% 40%) !important;
+}
