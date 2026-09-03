@@ -1,6 +1,8 @@
 import api from "@/lib/api-client";
 import type { CvProfile, CvTemplate, Resume, ApiResponse } from "@/types";
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://admin.ejobs.bd").replace(/\/api\/?$/, "");
+
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
   try {
@@ -113,8 +115,8 @@ export const resumeService = {
   downloadPdf: async (uuid: string): Promise<Blob> => {
     const token = getToken();
     const url = token
-      ? `/cv/download/${uuid}?token=${encodeURIComponent(token)}`
-      : `/cv/download/${uuid}`;
+      ? `${API_BASE}/cv/download/${uuid}?token=${encodeURIComponent(token)}`
+      : `${API_BASE}/cv/download/${uuid}`;
 
     const proxyRes = await fetch(url, {
       signal: AbortSignal.timeout(45000),
@@ -177,9 +179,9 @@ export const resumeService = {
     return res.data;
   },
 
-  // Get template demo preview HTML (public, no auth) — via Next.js proxy
+  // Get template demo preview HTML (public, no auth)
   getPreviewDemo: async (slug: string): Promise<string> => {
-    const res = await fetch(`/cv/demo/${slug}`);
+    const res = await fetch(`${API_BASE}/cv/demo/${slug}`);
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       throw new Error(text || `Preview failed (${res.status})`);

@@ -7,13 +7,10 @@ declare module "axios" {
   }
 }
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api").replace(/\/api\/?$/, "");
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://admin.ejobs.bd").replace(/\/api\/?$/, "");
 const isBrowser = typeof window !== "undefined";
 const api = axios.create({
-  // In the browser use relative /api so Next.js rewrites proxy to backend,
-  // keeping same-origin and letting cookies (XSRF-TOKEN, session) work.
-  // On the server (SSR) use the full backend URL directly.
-  baseURL: isBrowser ? "/api" : `${API_BASE}/api`,
+  baseURL: `${API_BASE}/api`,
   withCredentials: true,
   timeout: 30000,
   headers: {
