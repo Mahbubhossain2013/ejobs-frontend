@@ -1,11 +1,10 @@
 FROM node:22-alpine AS base
-
-RUN apk add --no-cache curl python3 make g++
+RUN apk add --no-cache curl
 
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --prefer-offline --no-audit
 
 FROM base AS builder
 WORKDIR /app

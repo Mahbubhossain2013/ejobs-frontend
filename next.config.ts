@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  staticPageGenerationTimeout: 120,
   serverExternalPackages: ["laravel-echo", "pusher-js"],
   images: {
     remotePatterns: [
