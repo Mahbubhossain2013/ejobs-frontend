@@ -55,61 +55,6 @@ export default function PreviewStep({
   );
   const currentTemplate = templates.find((t) => t.slug === selectedSlug);
 
-  const saveToLocalHistory = useCallback((uuid: string, customTitle?: string, id?: number) => {
-    try {
-      const fullSnapshot = buildPayload();
-      const existing = JSON.parse(localStorage.getItem("user_resumes") || "[]");
-      const cvTitle = customTitle || `${fullSnapshot.personal?.full_name || "My"} CV`;
-      const newEntry = {
-        id: id || Date.now(),
-        uuid: uuid,
-        title: cvTitle,
-        template_slug: selectedSlug,
-        template_name: currentTemplate?.name || selectedSlug,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        is_public: false,
-        data_snapshot: fullSnapshot,
-      };
-      const updated = [newEntry, ...existing.filter((r: any) => r.uuid !== uuid)];
-      localStorage.setItem("user_resumes", JSON.stringify(updated));
-    } catch {
-      // ignore
-    }
-  }, [buildPayload, currentTemplate?.name, selectedSlug]);
-
-  const [previewHtml, setPreviewHtml] = useState("");
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [fullModalOpen, setFullModalOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-
-  const updateScale = useCallback(() => {
-    if (!wrapperRef.current) return;
-    setScale(Math.min(1, wrapperRef.current.clientWidth / A4_WIDTH_PX));
-  }, []);
-
-  useEffect(() => {
-    updateScale();
-    const obs = new ResizeObserver(updateScale);
-    if (wrapperRef.current) obs.observe(wrapperRef.current);
-    return () => obs.disconnect();
-  }, [updateScale, selectedSlug]);
-
-  useEffect(() => {
-    resumeService
-      .getTemplates()
-      .then((t) => {
-        setTemplates(t);
-        if (!data.template_slug && t.length > 0) {
-          setSelectedSlug(t[0].slug);
-          setSectionData("template_slug", t[0].slug);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
   // Use ref so that buildPayload is always current without causing useEffect re-runs
   const dataRef = useRef(data);
   useEffect(() => { dataRef.current = data; }, [data]);
@@ -225,6 +170,60 @@ export default function PreviewStep({
     };
   }, []); // stable - reads from dataRef
 
+  const saveToLocalHistory = useCallback((uuid: string, customTitle?: string, id?: number) => {
+    try {
+      const fullSnapshot = buildPayload();
+      const existing = JSON.parse(localStorage.getItem("user_resumes") || "[]");
+      const cvTitle = customTitle || `${fullSnapshot.personal?.full_name || "My"} CV`;
+      const newEntry = {
+        id: id || Date.now(),
+        uuid: uuid,
+        title: cvTitle,
+        template_slug: selectedSlug,
+        template_name: currentTemplate?.name || selectedSlug,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_public: false,
+        data_snapshot: fullSnapshot,
+      };
+      const updated = [newEntry, ...existing.filter((r: any) => r.uuid !== uuid)];
+      localStorage.setItem("user_resumes", JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+  }, [buildPayload, currentTemplate?.name, selectedSlug]);
+
+  const [previewHtml, setPreviewHtml] = useState("");
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [fullModalOpen, setFullModalOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  const updateScale = useCallback(() => {
+    if (!wrapperRef.current) return;
+    setScale(Math.min(1, wrapperRef.current.clientWidth / A4_WIDTH_PX));
+  }, []);
+
+  useEffect(() => {
+    updateScale();
+    const obs = new ResizeObserver(updateScale);
+    if (wrapperRef.current) obs.observe(wrapperRef.current);
+    return () => obs.disconnect();
+  }, [updateScale, selectedSlug]);
+
+  useEffect(() => {
+    resumeService
+      .getTemplates()
+      .then((t) => {
+        setTemplates(t);
+        if (!data.template_slug && t.length > 0) {
+          setSelectedSlug(t[0].slug);
+          setSectionData("template_slug", t[0].slug);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!selectedSlug) return;

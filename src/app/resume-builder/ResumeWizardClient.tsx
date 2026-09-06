@@ -66,9 +66,11 @@ export default function ResumeWizardClient() {
 
   const currentStep = pathnameToStep(pathname);
 
-  if (wizard.step !== currentStep) {
-    wizard.setStep(currentStep);
-  }
+  React.useEffect(() => {
+    if (wizard.step !== currentStep) {
+      wizard.setStep(currentStep);
+    }
+  }, [currentStep, wizard]);
 
   const goToStep = (n: number) => {
     const path = STEPS.find((s) => s.key === n)?.path || "template";

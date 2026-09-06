@@ -1,6 +1,3 @@
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
-
 /**
  * Injects print-perfect CSS styles into the CV HTML to eliminate
  * browser default headers, footers (dates, URLs, page numbers),
@@ -70,7 +67,6 @@ export function printCvHtml(html: string) {
   const printWindow = window.open("", "_blank");
 
   if (!printWindow) {
-    // Fallback if popup is blocked
     window.print();
     return;
   }
@@ -88,7 +84,6 @@ export function printCvHtml(html: string) {
     }
   };
 
-  // Wait for all images in the new window to be completely loaded
   const checkLoaded = () => {
     try {
       const images = printWindow.document.images;
@@ -114,7 +109,7 @@ export function printCvHtml(html: string) {
 
 /**
  * Generates and downloads a pixel-perfect, high-DPI A4 PDF directly from HTML.
- * Produces identical visual output to the browser screen (Same-to-same).
+ * Uses dynamic imports for html2canvas and jsPDF to ensure no top-level module TDZ conflicts.
  */
 export async function downloadCvAsPdf(
   html: string,
@@ -123,6 +118,12 @@ export async function downloadCvAsPdf(
   if (!html || typeof window === "undefined") {
     throw new Error("HTML content is required for PDF generation");
   }
+
+  // Dynamic import on demand
+  const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+    import("html2canvas"),
+    import("jspdf"),
+  ]);
 
   const printableHtml = preparePrintableHtml(html);
 
@@ -158,7 +159,6 @@ export async function downloadCvAsPdf(
         return new Promise<void>((resolve) => {
           img.onload = () => resolve();
           img.onerror = () => resolve();
-          // Timeout fallback in case image fails to trigger events
           setTimeout(() => resolve(), 3000);
         });
       })
@@ -171,14 +171,12 @@ export async function downloadCvAsPdf(
       } catch {}
     }
 
-    // Give browser time to complete layout & paints
     await new Promise((resolve) => setTimeout(resolve, 350));
 
     const target =
       (iframeDoc.querySelector(".cv-page") as HTMLElement) ||
       (iframeDoc.body as HTMLElement);
 
-    // Render using html2canvas at scale: 2 (crisp, retina 300 DPI equivalent)
     const canvas = await html2canvas(target, {
       scale: 2,
       useCORS: true,
@@ -196,18 +194,16 @@ export async function downloadCvAsPdf(
       compress: true,
     });
 
-    const pageWidth = 210; // A4 width in mm
-    const pageHeight = 297; // A4 height in mm
+    const pageWidth = 210;
+    const pageHeight = 297;
     const imgHeight = (canvas.height * pageWidth) / canvas.width;
 
     let heightLeft = imgHeight;
     let position = 0;
 
-    // First page
     pdf.addImage(imgData, "JPEG", 0, position, pageWidth, imgHeight, undefined, "FAST");
     heightLeft -= pageHeight;
 
-    // Subsequent pages if CV exceeds single page
     while (heightLeft > 5) {
       position = heightLeft - imgHeight;
       pdf.addPage();
@@ -215,7 +211,6 @@ export async function downloadCvAsPdf(
       heightLeft -= pageHeight;
     }
 
-    // Sanitize filename
     const safeName = fileName
       .replace(/[^a-zA-Z0-9_\-\u0980-\u09FF\s]/g, "")
       .trim()
@@ -223,7 +218,6 @@ export async function downloadCvAsPdf(
 
     pdf.save(`${safeName}.pdf`);
   } finally {
-    // Clean up temporary iframe
     if (iframe.parentNode) {
       iframe.parentNode.removeChild(iframe);
     }
