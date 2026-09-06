@@ -1,11 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Camera, Newspaper, Award, ArrowRight, Target, Eye, BookOpen } from "lucide-react";
+import { MapPin, Camera, Newspaper, Award, ArrowRight, Target, Eye, BookOpen, ChevronDown, ChevronUp } from "lucide-react";
 import type { CompanyReview } from "@/types";
 
 function formatJobType(t: string) { return t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()); }
@@ -205,27 +205,65 @@ export default function OverviewTab({ company, slug, activeJobs, culturePhotos, 
 }
 
 function MissionVisionCard({ icon: Icon, color, title, text }: { icon: any; color: string; title: string; text: string }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const cleanText = (text || "").replace(/^#+\s*/gm, "").trim();
+  const isLong = cleanText.length > 120;
+
   const gradients: Record<string, string> = {
     blue: "from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800",
     purple: "from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800",
     emerald: "from-emerald-50 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 border-emerald-200 dark:border-emerald-800",
   };
   const iconBg: Record<string, string> = {
-    blue: "bg-blue-100 dark:bg-blue-900/60 text-blue-600",
-    purple: "bg-purple-100 dark:bg-purple-900/60 text-purple-600",
-    emerald: "bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600",
+    blue: "bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400",
+    purple: "bg-purple-100 dark:bg-purple-900/60 text-purple-600 dark:text-purple-400",
+    emerald: "bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400",
+  };
+  const btnColors: Record<string, string> = {
+    blue: "text-blue-600 dark:text-blue-400 hover:text-blue-700",
+    purple: "text-purple-600 dark:text-purple-400 hover:text-purple-700",
+    emerald: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-700",
   };
 
   return (
-    <Card className={`bg-gradient-to-br ${gradients[color] || gradients.blue} border`}>
-      <CardContent className="p-5">
-        <div className="flex items-center gap-2 mb-2">
-          <div className={`h-8 w-8 rounded-lg ${iconBg[color] || iconBg.blue} flex items-center justify-center`}>
-            <Icon className="h-4 w-4" />
+    <Card className={`bg-gradient-to-br ${gradients[color] || gradients.blue} border flex flex-col justify-between transition-all duration-200`}>
+      <CardContent className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-2.5">
+            <div className={`h-8 w-8 rounded-lg ${iconBg[color] || iconBg.blue} flex items-center justify-center shrink-0`}>
+              <Icon className="h-4 w-4" />
+            </div>
+            <h4 className="font-bold text-sm">{title}</h4>
           </div>
-          <h4 className="font-bold text-sm">{title}</h4>
+          <p
+            className={`text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line ${
+              !expanded && isLong ? "line-clamp-3" : ""
+            }`}
+          >
+            {cleanText}
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
+
+        {isLong && (
+          <div className="pt-2 mt-auto">
+            <button
+              type="button"
+              onClick={() => setExpanded(!expanded)}
+              className={`inline-flex items-center gap-1 text-xs font-semibold ${btnColors[color] || btnColors.blue} hover:underline focus:outline-none transition-colors cursor-pointer`}
+            >
+              {expanded ? (
+                <>
+                  কম দেখুন <ChevronUp className="h-3.5 w-3.5" />
+                </>
+              ) : (
+                <>
+                  আরও পড়ুন <ChevronDown className="h-3.5 w-3.5" />
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

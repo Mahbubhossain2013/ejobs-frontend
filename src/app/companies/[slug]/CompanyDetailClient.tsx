@@ -17,7 +17,7 @@ import {
   Building2, ArrowLeft, Users, Calendar, Briefcase, Star, Eye, MapPin,
   Link2, AtSign, Hash, Send, Rss, Globe, CheckCircle2, ThumbsUp,
   ShieldCheck, Camera, Megaphone, Newspaper, Award, MessageSquare,
-  Flame, ArrowRight, Target, BookOpen,
+  Flame, ArrowRight, Target, BookOpen, ChevronDown, ChevronUp,
 } from "lucide-react";
 import type { Company, CompanyReview } from "@/types";
 import CompanyProfileHeader from "@/components/company/CompanyProfileHeader";
@@ -34,6 +34,85 @@ function EmptyState({ text }: { text: string }) {
       <Building2 className="h-8 w-8 mb-2 opacity-40" />
       <p className="text-sm">{text}</p>
     </div>
+  );
+}
+
+/* ─── Collapsible Mission / Vision / Values Card ─── */
+function CollapsibleMissionCard({
+  icon: Icon,
+  color,
+  title,
+  text,
+}: {
+  icon: any;
+  color: "blue" | "purple" | "emerald";
+  title: string;
+  text: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  // Clean raw markdown heading artifacts if present (e.g. "### কোম্পানির মিশন ...")
+  const cleanText = (text || "").replace(/^#+\s*/gm, "").trim();
+  const isLong = cleanText.length > 120;
+
+  const gradients: Record<string, string> = {
+    blue: "from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800",
+    purple: "from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800",
+    emerald: "from-emerald-50 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 border-emerald-200 dark:border-emerald-800",
+  };
+
+  const iconBg: Record<string, string> = {
+    blue: "bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400",
+    purple: "bg-purple-100 dark:bg-purple-900/60 text-purple-600 dark:text-purple-400",
+    emerald: "bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400",
+  };
+
+  const btnColors: Record<string, string> = {
+    blue: "text-blue-600 dark:text-blue-400 hover:text-blue-700",
+    purple: "text-purple-600 dark:text-purple-400 hover:text-purple-700",
+    emerald: "text-emerald-600 dark:text-emerald-400 hover:text-emerald-700",
+  };
+
+  return (
+    <Card className={`bg-gradient-to-br ${gradients[color] || gradients.blue} border flex flex-col justify-between transition-all duration-200`}>
+      <CardContent className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-2.5">
+            <div className={`h-8 w-8 rounded-lg ${iconBg[color] || iconBg.blue} flex items-center justify-center shrink-0`}>
+              <Icon className="h-4 w-4" />
+            </div>
+            <h4 className="font-bold text-sm">{title}</h4>
+          </div>
+          <p
+            className={`text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line ${
+              !expanded && isLong ? "line-clamp-3" : ""
+            }`}
+          >
+            {cleanText}
+          </p>
+        </div>
+
+        {isLong && (
+          <div className="pt-2 mt-auto">
+            <button
+              type="button"
+              onClick={() => setExpanded(!expanded)}
+              className={`inline-flex items-center gap-1 text-xs font-semibold ${btnColors[color] || btnColors.blue} hover:underline focus:outline-none transition-colors cursor-pointer`}
+            >
+              {expanded ? (
+                <>
+                  কম দেখুন <ChevronUp className="h-3.5 w-3.5" />
+                </>
+              ) : (
+                <>
+                  আরও পড়ুন <ChevronDown className="h-3.5 w-3.5" />
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -346,43 +425,28 @@ export default function CompanyDetailClient({ slug }: Props) {
                 {(company.mission || company.vision || company.values) && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {company.mission && (
-                      <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
-                        <CardContent className="p-5">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/60 flex items-center justify-center">
-                              <Target className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <h4 className="font-bold text-sm">Our Mission</h4>
-                          </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{company.mission}</p>
-                        </CardContent>
-                      </Card>
+                      <CollapsibleMissionCard
+                        icon={Target}
+                        color="blue"
+                        title="Our Mission"
+                        text={company.mission}
+                      />
                     )}
                     {company.vision && (
-                      <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800">
-                        <CardContent className="p-5">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center">
-                              <Eye className="h-4 w-4 text-purple-600" />
-                            </div>
-                            <h4 className="font-bold text-sm">Our Vision</h4>
-                          </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{company.vision}</p>
-                        </CardContent>
-                      </Card>
+                      <CollapsibleMissionCard
+                        icon={Eye}
+                        color="purple"
+                        title="Our Vision"
+                        text={company.vision}
+                      />
                     )}
                     {company.values && (
-                      <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 border-emerald-200 dark:border-emerald-800">
-                        <CardContent className="p-5">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center">
-                              <BookOpen className="h-4 w-4 text-emerald-600" />
-                            </div>
-                            <h4 className="font-bold text-sm">Our Values</h4>
-                          </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{company.values}</p>
-                        </CardContent>
-                      </Card>
+                      <CollapsibleMissionCard
+                        icon={BookOpen}
+                        color="emerald"
+                        title="Our Values"
+                        text={company.values}
+                      />
                     )}
                   </div>
                 )}
@@ -518,43 +582,28 @@ export default function CompanyDetailClient({ slug }: Props) {
                 {(company.mission || company.vision || company.values) && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {company.mission && (
-                      <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-200 dark:border-blue-800">
-                        <CardContent className="p-5">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/60 flex items-center justify-center">
-                              <Target className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <h4 className="font-bold text-sm">Our Mission</h4>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{company.mission}</p>
-                        </CardContent>
-                      </Card>
+                      <CollapsibleMissionCard
+                        icon={Target}
+                        color="blue"
+                        title="Our Mission"
+                        text={company.mission}
+                      />
                     )}
                     {company.vision && (
-                      <Card className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20 border-purple-200 dark:border-purple-800">
-                        <CardContent className="p-5">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-900/60 flex items-center justify-center">
-                              <Eye className="h-4 w-4 text-purple-600" />
-                            </div>
-                            <h4 className="font-bold text-sm">Our Vision</h4>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{company.vision}</p>
-                        </CardContent>
-                      </Card>
+                      <CollapsibleMissionCard
+                        icon={Eye}
+                        color="purple"
+                        title="Our Vision"
+                        text={company.vision}
+                      />
                     )}
                     {company.values && (
-                      <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/30 dark:to-emerald-900/20 border-emerald-200 dark:border-emerald-800">
-                        <CardContent className="p-5">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 flex items-center justify-center">
-                              <BookOpen className="h-4 w-4 text-emerald-600" />
-                            </div>
-                            <h4 className="font-bold text-sm">Our Values</h4>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{company.values}</p>
-                        </CardContent>
-                      </Card>
+                      <CollapsibleMissionCard
+                        icon={BookOpen}
+                        color="emerald"
+                        title="Our Values"
+                        text={company.values}
+                      />
                     )}
                   </div>
                 )}
