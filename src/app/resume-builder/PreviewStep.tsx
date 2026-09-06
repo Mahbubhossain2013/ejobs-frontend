@@ -240,32 +240,43 @@ export default function PreviewStep({
 
     try {
       let printFrame = document.getElementById("cv-print-frame") as HTMLIFrameElement;
-      if (!printFrame) {
-        printFrame = document.createElement("iframe");
-        printFrame.id = "cv-print-frame";
-        printFrame.style.position = "fixed";
-        printFrame.style.right = "0";
-        printFrame.style.bottom = "0";
-        printFrame.style.width = "0";
-        printFrame.style.height = "0";
-        printFrame.style.border = "0";
-        document.body.appendChild(printFrame);
+      if (printFrame) {
+        printFrame.remove();
       }
+      printFrame = document.createElement("iframe");
+      printFrame.id = "cv-print-frame";
+      printFrame.style.position = "fixed";
+      printFrame.style.right = "0";
+      printFrame.style.bottom = "0";
+      printFrame.style.width = "0";
+      printFrame.style.height = "0";
+      printFrame.style.border = "0";
+      document.body.appendChild(printFrame);
 
       const frameDoc = printFrame.contentWindow?.document;
       if (frameDoc) {
         frameDoc.open();
         frameDoc.write(previewHtml);
         frameDoc.close();
-        setTimeout(() => {
-          try {
-            printFrame.contentWindow?.focus();
-            printFrame.contentWindow?.print();
-          } catch {
-            window.print();
-          }
-        }, 500);
-        return;
+
+        const triggerPrint = () => {
+          setTimeout(() => {
+            try {
+              printFrame.contentWindow?.focus();
+              printFrame.contentWindow?.print();
+            } catch {
+              window.print();
+            }
+          }, 400);
+        };
+
+        // If images exist in iframe, wait for them or timeout
+        if (printFrame.contentWindow) {
+          printFrame.contentWindow.onload = triggerPrint;
+          // Fallback if onload doesn't fire
+          setTimeout(triggerPrint, 1200);
+          return;
+        }
       }
     } catch {
       // Fallback
