@@ -95,7 +95,10 @@ export default function PreviewStep({
       `${d.personal.first_name || ""} ${d.personal.last_name || ""}`.trim() ||
       "Your Name";
 
+    const photoUrl = d.personal.photo_url || "";
+
     return {
+      photo_url: photoUrl,
       personal: {
         full_name: fullName,
         first_name: d.personal.first_name,
@@ -109,7 +112,7 @@ export default function PreviewStep({
         permanent_address: (d.personal as any).permanent_address || "",
         city: d.personal.city,
         location: d.personal.city || d.personal.address,
-        photo_url: d.personal.photo_url,
+        photo_url: photoUrl,
         dob: d.personal.dob,
         place_of_birth: d.personal.place_of_birth,
         driving_license: d.personal.driving_license,

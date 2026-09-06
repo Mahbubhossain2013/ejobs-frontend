@@ -61,38 +61,112 @@ export default function PersonalStep({
     if (!user || importedRef.current) return;
     importedRef.current = true;
 
-    const p = wizard.data.personal;
-    if (p.first_name && p.email) return;
-
     const updates: Record<string, string> = {};
-    if (user.name) {
+    if (user.name && !wizard.data.personal.full_name) {
       const parts = user.name.split(" ");
       updates.first_name = parts[0] || "";
       updates.last_name = parts.slice(1).join(" ") || "";
       updates.full_name = user.name;
     }
-    if (user.email) updates.email = user.email;
+    if (user.email && !wizard.data.personal.email) {
+      updates.email = user.email;
+    }
 
     api.get("/candidate/dashboard").then((res) => {
       const prof = res.data?.user?.profile || {};
-      if (prof.phone) updates.phone = prof.phone;
-      if (prof.city) updates.city = prof.city;
-      if (prof.current_position) updates.current_position = prof.current_position;
-      if (prof.date_of_birth) updates.dob = prof.date_of_birth;
-      if (prof.gender) updates.gender = prof.gender;
-      if (prof.nationality) updates.nationality = prof.nationality;
-      if (prof.linkedin_url) updates.linkedin = prof.linkedin_url;
-      if (prof.github_url) updates.github = prof.github_url;
-      if (prof.avatar) updates.photo_url = getStorageUrl(prof.avatar) || "";
-      if (prof.present_address || prof.address) updates.address = prof.present_address || prof.address;
-      if (prof.permanent_address) updates.permanent_address = prof.permanent_address;
-      if (prof.marital_status) updates.marital_status = prof.marital_status;
-      if (prof.father_name) updates.father_name = prof.father_name;
-      if (prof.mother_name) updates.mother_name = prof.mother_name;
-      if (prof.religion) updates.religion = prof.religion;
-      if (prof.blood_group) updates.blood_group = prof.blood_group;
-      if (prof.nid) updates.nid = prof.nid;
-      updatePersonal(updates);
+      if (!wizard.data.personal.phone && prof.phone) updates.phone = prof.phone;
+      if (!wizard.data.personal.city && (prof.city || prof.district)) updates.city = prof.city || prof.district;
+      if (!wizard.data.personal.current_position && prof.current_position) updates.current_position = prof.current_position;
+      if (!wizard.data.personal.dob && prof.date_of_birth) updates.dob = prof.date_of_birth;
+      if (!wizard.data.personal.gender && prof.gender) updates.gender = prof.gender;
+      if (!wizard.data.personal.nationality && prof.nationality) updates.nationality = prof.nationality;
+      if (!wizard.data.personal.linkedin && prof.linkedin_url) updates.linkedin = prof.linkedin_url;
+      if (!wizard.data.personal.github && prof.github_url) updates.github = prof.github_url;
+      if (!wizard.data.personal.website && prof.portfolio_url) updates.website = prof.portfolio_url;
+      if (!wizard.data.personal.photo_url && (prof.avatar || res.data?.user?.avatar)) {
+        updates.photo_url = getStorageUrl(prof.avatar || res.data?.user?.avatar) || "";
+      }
+      if (!wizard.data.personal.address && (prof.present_address || prof.address)) updates.address = prof.present_address || prof.address;
+      if (!(wizard.data.personal as any).permanent_address && prof.permanent_address) updates.permanent_address = prof.permanent_address;
+      if (!wizard.data.personal.marital_status && prof.marital_status) updates.marital_status = prof.marital_status;
+      if (!(wizard.data.personal as any).father_name && prof.father_name) updates.father_name = prof.father_name;
+      if (!(wizard.data.personal as any).mother_name && prof.mother_name) updates.mother_name = prof.mother_name;
+      if (!(wizard.data.personal as any).religion && prof.religion) updates.religion = prof.religion;
+      if (!(wizard.data.personal as any).blood_group && prof.blood_group) updates.blood_group = prof.blood_group;
+      if (!(wizard.data.personal as any).nid && prof.nid) updates.nid = prof.nid;
+
+      if (Object.keys(updates).length > 0) {
+        updatePersonal(updates);
+      }
+
+      // Auto-populate work experience if wizard has none
+      if ((wizard.data.work_experience || []).length === 0 && Array.isArray(prof.experiences) && prof.experiences.length > 0) {
+        const mappedExp = prof.experiences.map((exp: any) => ({
+          job_title: exp.designation || exp.position || "",
+          employer: exp.company_name || exp.company || "",
+          employment_type: exp.employment_type || "Full-time",
+          city: exp.city || exp.location || "",
+          start_date: exp.start_date ? String(exp.start_date).slice(0, 7) : "",
+          end_date: exp.end_date ? String(exp.end_date).slice(0, 7) : (exp.is_current ? "Present" : ""),
+          is_current: Boolean(exp.is_current),
+          description: exp.responsibilities || exp.description || "",
+        }));
+        wizard.setSectionData("work_experience", mappedExp);
+      }
+
+      // Auto-populate education if wizard has none
+      if ((wizard.data.education || []).length === 0 && Array.isArray(prof.educations) && prof.educations.length > 0) {
+        const mappedEdu = prof.educations.map((edu: any) => ({
+          school: edu.institute_name || edu.institution || "",
+          degree: edu.degree_name || edu.degree || edu.level || "",
+          field_of_study: edu.group_or_subject || edu.field_of_study || "",
+          board: edu.board || "",
+          grade: edu.gpa_or_cgpa ? String(edu.gpa_or_cgpa) : "",
+          city: edu.city || "",
+          start_date: edu.start_date || "",
+          end_date: edu.passing_year ? String(edu.passing_year) : (edu.end_date || ""),
+          description: edu.description || "",
+        }));
+        wizard.setSectionData("education", mappedEdu);
+      }
+
+      // Auto-populate skills if wizard has none
+      if ((wizard.data.skills || []).length === 0 && Array.isArray(prof.skills) && prof.skills.length > 0) {
+        const mappedSkills = prof.skills.map((s: any) => ({
+          skill: typeof s === "string" ? s : (s.skill || s.name || ""),
+          level: typeof s === "object" && s.level ? String(s.level) : "80",
+        })).filter((s: any) => s.skill.trim().length > 0);
+        if (mappedSkills.length > 0) {
+          wizard.setSectionData("skills", mappedSkills);
+        }
+      }
+
+      // Auto-populate objective if empty
+      if (!wizard.data.resume_objective?.description && (prof.career_objective || prof.bio || prof.about)) {
+        wizard.setSectionData("resume_objective", {
+          description: prof.career_objective || prof.bio || prof.about || "",
+        });
+      }
+
+      // Auto-populate certifications if wizard has none
+      if ((wizard.data.certifications || []).length === 0 && Array.isArray(prof.certifications) && prof.certifications.length > 0) {
+        const mappedCerts = prof.certifications.map((c: any) => ({
+          name: c.name || "",
+          issuer: c.organization || c.issuer || "",
+          date: c.issue_date || c.date || "",
+        }));
+        wizard.setSectionData("certifications", mappedCerts);
+      }
+
+      // Auto-populate trainings if wizard has none
+      if ((wizard.data.training || []).length === 0 && Array.isArray(prof.trainings) && prof.trainings.length > 0) {
+        const mappedTrainings = prof.trainings.map((t: any) => ({
+          title: t.title || "",
+          institute: t.institute_name || t.institute || "",
+          duration: t.duration || "",
+        }));
+        wizard.setSectionData("training", mappedTrainings);
+      }
     }).catch(() => {
       if (Object.keys(updates).length > 0) updatePersonal(updates);
     });
@@ -112,42 +186,31 @@ export default function PersonalStep({
     try {
       const compressed = await compressToWebp(file);
 
-      // Check if user is logged in
-      const hasAuth = !!user;
-
-      if (hasAuth) {
-        try {
-          const formData = new FormData();
-          formData.append("photo", compressed);
-          const res = await api.post("/candidate/cv/profile/upload-photo", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-          const photoUrl = res.data?.data?.photo_url || res.data?.photo_url;
-          if (photoUrl) {
-            updatePersonal({ photo_url: photoUrl });
-            toast.success(isBn ? "ছবি সফলভাবে আপলোড হয়েছে!" : "Photo uploaded successfully!");
-            return;
-          }
-        } catch (apiErr: any) {
-          // If 401 unauthenticated, continue to local FileReader fallback smoothly
-          if (apiErr?.response?.status !== 401) {
-            console.warn("API photo upload failed, using local preview", apiErr);
-          }
-        }
-      }
-
-      // Guest / Offline / Fallback: Read as base64 Data URL so the photo renders in CV preview immediately
+      // Read as base64 Data URL immediately so the photo renders in UI & Live CV preview right away
       const reader = new FileReader();
-      reader.onload = (uploadEvent) => {
+      reader.onload = async (uploadEvent) => {
         const dataUrl = uploadEvent.target?.result as string;
         if (dataUrl) {
           updatePersonal({ photo_url: dataUrl });
-          toast.success(isBn ? "ছবি যুক্ত করা হয়েছে!" : "Photo added successfully!");
+          toast.success(isBn ? "ছবি সফলভাবে যুক্ত হয়েছে!" : "Photo added successfully!");
+        }
+
+        // Also upload to server if authenticated
+        if (user) {
+          try {
+            const formData = new FormData();
+            formData.append("photo", compressed);
+            await api.post("/candidate/cv/profile/upload-photo", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+          } catch (apiErr: any) {
+            console.warn("Server photo upload sync notice:", apiErr);
+          }
         }
       };
       reader.readAsDataURL(compressed);
     } catch (err: any) {
-      toast.error(isBn ? "ছবি প্রক্রিয়াকরণ ব্যর্থ" : "Photo processing failed");
+      toast.error(isBn ? "ছবি প্রক্রিয়াকরণ ব্যর্থ" : "Photo processing failed");
     } finally {
       setUploadingPhoto(false);
     }
@@ -155,7 +218,7 @@ export default function PersonalStep({
   };
 
   const photoDisplay = p.photo_url
-    ? (p.photo_url.startsWith("http") || p.photo_url.startsWith("blob:")) ? p.photo_url : getStorageUrl(p.photo_url)
+    ? (p.photo_url.startsWith("http") || p.photo_url.startsWith("blob:") || p.photo_url.startsWith("data:")) ? p.photo_url : getStorageUrl(p.photo_url)
     : null;
 
   return (
