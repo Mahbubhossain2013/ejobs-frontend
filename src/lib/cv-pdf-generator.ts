@@ -47,6 +47,21 @@ export function preparePrintableHtml(rawHtml: string): string {
           break-inside: avoid !important;
         }
       }
+
+      /* Readability booster: Increase font sizes by 2px across templates */
+      .left-desc { font-size: 12px !important; line-height: 1.6 !important; }
+      .bullet-list-left li { font-size: 12.5px !important; }
+      .contact-item { font-size: 12.5px !important; }
+      .contact-icon { font-size: 12px !important; }
+      .sec-orange { font-size: 15px !important; }
+      .sec-black { font-size: 16px !important; }
+      .item-title { font-size: 14px !important; }
+      .item-sub { font-size: 13px !important; }
+      .item-desc { font-size: 12px !important; line-height: 1.5 !important; }
+      .bullet-list-right li { font-size: 13px !important; }
+      .interest-name { font-size: 10.5px !important; }
+      .subtitle-left { font-size: 15px !important; }
+      .name-title-left { font-size: 32px !important; }
     </style>
   `;
 
@@ -177,6 +192,14 @@ export async function downloadCvAsPdf(
       (iframeDoc.querySelector(".cv-page") as HTMLElement) ||
       (iframeDoc.body as HTMLElement);
 
+    const naturalHeight = Math.max(
+      target.scrollHeight,
+      target.offsetHeight,
+      iframeDoc.body.scrollHeight,
+      1123
+    );
+    iframe.style.height = `${naturalHeight + 60}px`;
+
     const canvas = await html2canvas(target, {
       scale: 2,
       useCORS: true,
@@ -184,6 +207,7 @@ export async function downloadCvAsPdf(
       backgroundColor: null,
       logging: false,
       windowWidth: 794,
+      windowHeight: naturalHeight,
     });
 
     const imgData = canvas.toDataURL("image/jpeg", 0.95);

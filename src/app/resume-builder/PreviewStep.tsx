@@ -45,7 +45,7 @@ export default function PreviewStep({
 }) {
   const { language } = useThemeStore();
   const isBn = language === "bn";
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const { data, setSectionData } = wizard;
 
@@ -300,19 +300,23 @@ export default function PreviewStep({
       return;
     }
 
-    saveToLocalHistory();
+    const activeUuid = createdResumeUuid || `cv-${Date.now()}`;
+    if (!createdResumeUuid) setCreatedResumeUuid(activeUuid);
+    saveToLocalHistory(activeUuid);
 
     // Auto-save in background if authenticated
-    if (isAuthenticated && !createdResumeUuid) {
+    const hasAuth = isAuthenticated || (typeof window !== "undefined" && !!JSON.parse(localStorage.getItem("auth-storage") || "{}")?.state?.token);
+    if (hasAuth && !createdResumeUuid) {
+      const fullSnapshot = buildPayload();
       api.post("/cv/create", {
         template_slug: selectedSlug,
-        title: `${data.personal.full_name || "My Resume"} - ${selectedSlug}`,
-        data_snapshot: buildPayload(),
+        title: `${fullSnapshot.personal?.full_name || "My Resume"} - ${selectedSlug}`,
+        data_snapshot: fullSnapshot,
       }).then((res) => {
         const uuid = res.data?.data?.uuid || res.data?.uuid;
         if (uuid) {
           setCreatedResumeUuid(uuid);
-          saveToLocalHistory(uuid);
+          saveToLocalHistory(uuid, undefined, res.data?.data?.id);
         }
       }).catch(() => {});
     }
