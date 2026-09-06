@@ -469,13 +469,13 @@ export default function PreviewStep({
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 max-w-full">
-          {templates.slice(0, 10).map((t) => (
+          {templates.map((t) => (
             <button
               key={t.id}
               onClick={() => handleSelectTemplate(t.slug)}
               className={`px-3 py-1 text-xs font-semibold rounded-lg border transition-all whitespace-nowrap ${
                 selectedSlug === t.slug
-                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                  ? "bg-primary text-primary-foreground border-primary shadow-sm ring-2 ring-primary/20"
                   : "bg-background hover:bg-muted border-border text-foreground"
               }`}
             >
