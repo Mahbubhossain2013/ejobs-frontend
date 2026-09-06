@@ -8,7 +8,7 @@ import { useThemeStore } from "@/store/theme-store";
 import { toast } from "sonner";
 import {
   ArrowLeft, Download, Share2, LinkIcon, Loader2,
-  Lock, Globe,
+  Lock, Globe, Printer,
 } from "lucide-react";
 
 const A4_WIDTH_PX = 794;
@@ -125,6 +125,22 @@ export default function CvPreviewClient() {
     }
   };
 
+  const handlePrint = () => {
+    if (!html) return;
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    } else {
+      window.print();
+    }
+  };
+
   const handleShareToggle = async () => {
     try {
       const result = await resumeService.shareResume(uuid, { is_public: !isPublic });
@@ -192,8 +208,8 @@ export default function CvPreviewClient() {
       <div className="sticky top-0 z-50 bg-background border-b shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => router.push("/resume-builder")}>
-              <ArrowLeft className="h-4 w-4 mr-1" />{isBn ? "ফিরে যান" : "Back"}
+            <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard/resume")}>
+              <ArrowLeft className="h-4 w-4 mr-1" />{isBn ? "সিভি ড্যাশবোর্ড" : "CV Dashboard"}
             </Button>
             <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${isPublic ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"}`}>
               {isPublic ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
@@ -201,9 +217,13 @@ export default function CvPreviewClient() {
             </span>
           </div>
           <div className="flex items-center gap-1.5 flex-wrap">
+            <Button variant="default" size="sm" onClick={handlePrint} className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+              <Printer className="h-4 w-4" />
+              {isBn ? "প্রিন্ট করুন" : "Print"}
+            </Button>
             <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={downloading}>
               {downloading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Download className="h-4 w-4 mr-1" />}
-              {isBn ? "PDF" : "Download PDF"}
+              {isBn ? "PDF ডাউনলোড" : "Download PDF"}
             </Button>
             <Button variant="outline" size="sm" onClick={handleShareToggle}>
               <Share2 className="h-4 w-4 mr-1" />

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const backendBase = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api").replace(/\/api\/?$/, "");
+const backendBase = (process.env.NEXT_PUBLIC_API_URL || "https://admin.ejobs.bd/api").replace(/\/api\/?$/, "");
 
 export async function GET(
   req: NextRequest,

@@ -52,6 +52,31 @@ export default function PreviewStep({
   const [selectedSlug, setSelectedSlug] = useState<string>(
     data.template_slug || "modern-twocol"
   );
+  const currentTemplate = templates.find((t) => t.slug === selectedSlug);
+
+  const saveToLocalHistory = useCallback((uuid: string, customTitle?: string, id?: number) => {
+    try {
+      const fullSnapshot = buildPayload();
+      const existing = JSON.parse(localStorage.getItem("user_resumes") || "[]");
+      const cvTitle = customTitle || `${fullSnapshot.personal?.full_name || "My"} CV`;
+      const newEntry = {
+        id: id || Date.now(),
+        uuid: uuid,
+        title: cvTitle,
+        template_slug: selectedSlug,
+        template_name: currentTemplate?.name || selectedSlug,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_public: false,
+        data_snapshot: fullSnapshot,
+      };
+      const updated = [newEntry, ...existing.filter((r: any) => r.uuid !== uuid)];
+      localStorage.setItem("user_resumes", JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+  }, [buildPayload, currentTemplate?.name, selectedSlug]);
+
   const [previewHtml, setPreviewHtml] = useState("");
   const [previewLoading, setPreviewLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -241,6 +266,31 @@ export default function PreviewStep({
       return;
     }
 
+    // Auto-save so printing guarantees the resume is recorded in dashboard history
+    try {
+      const activeUuid = createdResumeUuid || `cv-${Date.now()}`;
+      if (!createdResumeUuid) setCreatedResumeUuid(activeUuid);
+      saveToLocalHistory(activeUuid);
+
+      const hasAuth = typeof window !== "undefined" && !!JSON.parse(localStorage.getItem("auth-storage") || "{}")?.state?.token;
+      if (hasAuth && !createdResumeUuid) {
+        const fullSnapshot = buildPayload();
+        api.post("/cv/create", {
+          template_slug: selectedSlug,
+          data_snapshot: fullSnapshot,
+          title: `${fullSnapshot.personal?.full_name || "My"} CV`,
+        }).then((res) => {
+          const apiUuid = res.data?.data?.uuid || res.data?.uuid;
+          if (apiUuid) {
+            setCreatedResumeUuid(apiUuid);
+            saveToLocalHistory(apiUuid, undefined, res.data?.data?.id);
+          }
+        }).catch(() => {});
+      }
+    } catch {
+      // ignore
+    }
+
     try {
       let printFrame = document.getElementById("cv-print-frame") as HTMLIFrameElement;
       if (printFrame) {
@@ -361,32 +411,41 @@ export default function PreviewStep({
       }
     })();
 
+    const fullSnapshot = buildPayload();
+    const cvTitle = `${fullSnapshot.personal?.full_name || "My"} CV`;
+
     if (!hasAuth) {
-      // Guest User can directly print their CV
+      // Guest User can directly print their CV & save locally
+      const localUuid = createdResumeUuid || `guest-${Date.now()}`;
+      setCreatedResumeUuid(localUuid);
+      saveToLocalHistory(localUuid, cvTitle);
       setSuccessModalOpen(true);
       toast.success(
-        isBn ? "সিভি প্রস্তুত! নিচে PDF ডাউনলোড বা প্রিন্ট অপশন নির্বাচন করুন।" : "CV is ready! Choose Print or Download below."
+        isBn ? "সিভি প্রস্তুত ও সংরক্ষিত হয়েছে! নিচে PDF ডাউনলোড বা প্রিন্ট অপশন নির্বাচন করুন।" : "CV is ready and saved! Choose Print or Download below."
       );
       return;
     }
 
     setSubmitting(true);
     try {
-      const fullSnapshot = buildPayload();
       const res = await api.post("/cv/create", {
         template_slug: selectedSlug,
         data_snapshot: fullSnapshot,
-        title: `${fullSnapshot.personal.full_name || "My"} CV`,
+        title: cvTitle,
       });
 
-      const uuid = res.data?.data?.uuid || res.data?.uuid || null;
+      const uuid = res.data?.data?.uuid || res.data?.uuid || `cv-${Date.now()}`;
+      const id = res.data?.data?.id || res.data?.id;
       setCreatedResumeUuid(uuid);
+      saveToLocalHistory(uuid, cvTitle, id);
       setSuccessModalOpen(true);
       toast.success(
-        isBn ? "🎉 সিভি সফলভাবে তৈরি ও সংরক্ষিত হয়েছে!" : "CV created successfully!"
+        isBn ? "🎉 সিভি সফলভাবে তৈরি ও ড্যাশবোর্ডে সংরক্ষিত হয়েছে!" : "CV created and saved to dashboard!"
       );
     } catch (e: any) {
-      // Even if API save throws, open success dialog for direct printing
+      const fallbackUuid = createdResumeUuid || `cv-${Date.now()}`;
+      setCreatedResumeUuid(fallbackUuid);
+      saveToLocalHistory(fallbackUuid, cvTitle);
       setSuccessModalOpen(true);
       toast.info(
         isBn ? "সিভি প্রস্তুত! নিচে PDF ডাউনলোড বা প্রিন্ট অপশন নির্বাচন করুন।" : "CV is ready! Choose Print or Download below."
@@ -395,8 +454,6 @@ export default function PreviewStep({
       setSubmitting(false);
     }
   };
-
-  const currentTemplate = templates.find((t) => t.slug === selectedSlug);
 
   return (
     <div className="space-y-6">

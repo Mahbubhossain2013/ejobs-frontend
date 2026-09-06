@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useThemeStore } from "@/store/theme-store";
 import TemplateCard from "@/components/cv/TemplateCard";
 import { useAuth } from "@/hooks/use-auth";
@@ -47,6 +48,8 @@ import {
   Upload,
   FileUp,
   ExternalLink,
+  Printer,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency, formatDate, getStorageUrl } from "@/lib/utils";
@@ -113,7 +116,34 @@ export default function ResumePage() {
     setLoading(true);
     try {
       const stored = getStoredResumes();
-      setResumes(stored);
+
+      let apiResumes: Resume[] = [];
+      try {
+        apiResumes = await resumeService.getResumes();
+      } catch {
+        // user might be offline or guest
+      }
+
+      const mergedMap = new Map<string, Resume>();
+      if (Array.isArray(apiResumes)) {
+        apiResumes.forEach((r) => {
+          if (r?.uuid) mergedMap.set(r.uuid, r);
+        });
+      }
+      if (Array.isArray(stored)) {
+        stored.forEach((r) => {
+          if (r?.uuid && !mergedMap.has(r.uuid)) {
+            mergedMap.set(r.uuid, r);
+          }
+        });
+      }
+
+      const combined = Array.from(mergedMap.values()).sort(
+        (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+      );
+
+      setResumes(combined);
+      storeResumes(combined);
 
       const templatesData = await resumeService.getTemplates().catch(() => []);
       setTemplates(templatesData);
@@ -221,19 +251,21 @@ export default function ResumePage() {
   const handleDownload = async (uuid: string) => {
     try {
       const blob = await resumeService.downloadResume(uuid);
+      if (!blob || blob.size < 50) throw new Error("Empty PDF");
       const url = URL.createObjectURL(
         new Blob([blob], { type: "application/pdf" })
       );
       const a = document.createElement("a");
       a.href = url;
-      a.download = "resume.pdf";
+      a.download = `resume-${uuid}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
       toast.success(isBn ? "ডাউনলোড শুরু হয়েছে" : "Download started");
     } catch {
-      toast.error(isBn ? "ডাউনলোড ব্যর্থ" : "Download failed");
+      toast.info(isBn ? "প্রিভিউ পেজ ওপেন হচ্ছে, সেখান থেকে সরাসরি প্রিন্ট বা PDF সেভ করুন" : "Opening preview to print/save");
+      window.open(`/cv/preview/${uuid}`, "_blank");
     }
   };
 
@@ -524,17 +556,47 @@ export default function ResumePage() {
                     {formatDate(resume.created_at)}
                   </div>
 
-                  <div className="flex items-center gap-1 pt-1 border-t">
-                    {/* Download */}
+                  {/* Primary Action Buttons */}
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t">
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
+                      variant="default"
+                      size="sm"
+                      asChild
+                      className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium h-9 text-xs shadow-sm"
+                    >
+                      <a href={`/cv/preview/${resume.uuid}`} target="_blank" rel="noopener noreferrer">
+                        <Printer className="h-3.5 w-3.5" />
+                        {isBn ? "প্রিন্ট / প্রিভিউ" : "Print / View"}
+                      </a>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleDownload(resume.uuid)}
-                      title={isBn ? "ডাউনলোড" : "Download PDF"}
+                      className="gap-1.5 font-medium h-9 text-xs"
                     >
                       <Download className="h-3.5 w-3.5" />
+                      {isBn ? "PDF ডাউনলোড" : "Download PDF"}
                     </Button>
+                  </div>
+
+                  {/* Utility icon buttons */}
+                  <div className="flex items-center gap-1 pt-1 border-t">
+                    {/* Edit */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                      asChild
+                    >
+                      <Link href={`/resume-builder/edit/${resume.template_slug || "modern-twocol"}`}>
+                        <Pencil className="h-3 w-3" />
+                        {isBn ? "এডিট" : "Edit"}
+                      </Link>
+                    </Button>
+
+                    <div className="flex-1" />
+
                     {/* Share Toggle */}
                     <Button
                       variant="ghost"
@@ -557,6 +619,7 @@ export default function ResumePage() {
                         }`}
                       />
                     </Button>
+
                     {/* Copy Link */}
                     {resume.is_public && (
                       <Button
@@ -573,6 +636,7 @@ export default function ResumePage() {
                         )}
                       </Button>
                     )}
+
                     {/* Duplicate */}
                     <Button
                       variant="ghost"
@@ -583,7 +647,7 @@ export default function ResumePage() {
                     >
                       <Copy className="h-3.5 w-3.5" />
                     </Button>
-                    <div className="flex-1" />
+
                     {/* Delete */}
                     <Button
                       variant="ghost"
