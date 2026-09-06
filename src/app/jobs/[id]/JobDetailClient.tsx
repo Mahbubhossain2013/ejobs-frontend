@@ -47,6 +47,23 @@ function getPromotionBadgeConfig(type: string, isBn: boolean) {
   return map[type] || map.sponsored_job;
 }
 
+function toArraySafe(val: any): string[] {
+  if (!val) return [];
+  if (Array.isArray(val)) return val.filter(Boolean).map(String);
+  if (typeof val === "string") {
+    const trimmed = val.trim();
+    if (!trimmed) return [];
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) return parsed.filter(Boolean).map(String);
+      } catch {}
+    }
+    return trimmed.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+
 export default function JobDetailClient({ jobId }: Props) {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
@@ -179,13 +196,16 @@ export default function JobDetailClient({ jobId }: Props) {
   const promoInfo = getPromotionInfo(job);
   const promoBadge = promoInfo ? getPromotionBadgeConfig(promoInfo.type, isBn) : null;
   const matchScore = matchData?.score || matchData?.match_score;
-  const matchedSkills = matchData?.matched_skills || matchData?.analysis?.matched_skills || [];
-  const missingSkills = matchData?.missing_skills || matchData?.analysis?.missing_skills || [];
+  const matchedSkills = toArraySafe(matchData?.matched_skills || matchData?.analysis?.matched_skills);
+  const missingSkills = toArraySafe(matchData?.missing_skills || matchData?.analysis?.missing_skills);
   const companyName = typeof job.company === "object" ? job.company?.name : job.company;
   const companySlug = typeof job.company === "object" ? (job.company?.slug || job.company?.id || "") : "";
   const companyLogo = typeof job.company === "object" ? job.company?.logo : null;
   const companyLocation = typeof job.company === "object" ? job.company?.location : null;
-  const skills = (job.required_skills || []).filter(Boolean);
+  const skills = toArraySafe(job.required_skills);
+  const languageSkills = toArraySafe(job.language_skills);
+  const requiredCertifications = toArraySafe(job.required_certifications);
+  const requiredDocuments = toArraySafe(job.required_documents);
   const salaryDisplay = job.salary_range || (job.salary_min ? `${formatCurrency(job.salary_min)}${job.salary_max ? ` - ${formatCurrency(job.salary_max)}` : ""}` : null);
 
   return (
@@ -338,20 +358,20 @@ export default function JobDetailClient({ jobId }: Props) {
                   </CardContent>
                 </Card>
               )}
-              {job.language_skills && job.language_skills.length > 0 && (
+              {languageSkills.length > 0 && (
                 <Card><CardHeader><CardTitle>{isBn ? "ভাষা দক্ষতা" : "Language Skills"}</CardTitle></CardHeader>
-                  <CardContent><div className="flex flex-wrap gap-2">{job.language_skills.map((lang: string, i: number) => <Badge key={i} variant="secondary">{lang}</Badge>)}</div></CardContent>
+                  <CardContent><div className="flex flex-wrap gap-2">{languageSkills.map((lang: string, i: number) => <Badge key={i} variant="secondary">{lang}</Badge>)}</div></CardContent>
                 </Card>
               )}
-              {job.required_certifications && job.required_certifications.length > 0 && (
+              {requiredCertifications.length > 0 && (
                 <Card><CardHeader><CardTitle>{isBn ? "প্রয়োজনীয় সার্টিফিকেট" : "Required Certifications"}</CardTitle></CardHeader>
-                  <CardContent><div className="flex flex-wrap gap-2">{job.required_certifications.map((cert: string, i: number) => <Badge key={i} variant="outline">{cert}</Badge>)}</div></CardContent>
+                  <CardContent><div className="flex flex-wrap gap-2">{requiredCertifications.map((cert: string, i: number) => <Badge key={i} variant="outline">{cert}</Badge>)}</div></CardContent>
                 </Card>
               )}
               {job.driving_license_required && <p className="text-xs text-muted-foreground flex items-center gap-1"><Shield className="h-3 w-3" />{isBn ? "ড্রাইভিং লাইসেন্স প্রয়োজন" : "Driving license required"}</p>}
-              {job.required_documents && job.required_documents.length > 0 && (
+              {requiredDocuments.length > 0 && (
                 <Card><CardHeader><CardTitle>{isBn ? "প্রয়োজনীয় ডকুমেন্ট" : "Required Documents"}</CardTitle></CardHeader>
-                  <CardContent><div className="flex flex-wrap gap-2">{job.required_documents.map((doc: string, i: number) => <Badge key={i} variant="secondary">{doc}</Badge>)}</div></CardContent>
+                  <CardContent><div className="flex flex-wrap gap-2">{requiredDocuments.map((doc: string, i: number) => <Badge key={i} variant="secondary">{doc}</Badge>)}</div></CardContent>
                 </Card>
               )}
             </div>)}
