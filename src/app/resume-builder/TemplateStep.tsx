@@ -563,7 +563,7 @@ export default function TemplateStep({
               >
                                 {/* Real Visual CV Template Design Thumbnail */}
                 <div className="relative w-full overflow-hidden border-b bg-slate-100 dark:bg-slate-900" style={{ height: "290px" }}>
-                  <TemplateThumbnail template={t} />
+                  <TemplateThumbnail template={t} demoHtml={templateDemos[t.slug]} />
 
                   {/* Selected Indicator Pill */}
                   {isSelected && (

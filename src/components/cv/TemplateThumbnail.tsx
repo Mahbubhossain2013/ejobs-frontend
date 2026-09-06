@@ -6,17 +6,25 @@ import type { CvTemplate } from "@/types";
 interface TemplateThumbnailProps {
   template: CvTemplate;
   className?: string;
+  demoHtml?: string;
 }
-
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://admin.ejobs.bd").replace(/\/api\/?$/, "");
 
 export default function TemplateThumbnail({
   template,
   className = "",
+  demoHtml,
 }: TemplateThumbnailProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.35);
   const [loaded, setLoaded] = useState(false);
+  const [htmlContent, setHtmlContent] = useState<string | null>(demoHtml || null);
+
+  useEffect(() => {
+    if (demoHtml) {
+      setHtmlContent(demoHtml);
+      setLoaded(true);
+    }
+  }, [demoHtml]);
 
   useEffect(() => {
     const updateSize = () => {
@@ -33,7 +41,27 @@ export default function TemplateThumbnail({
     return () => ro.disconnect();
   }, []);
 
-  const demoUrl = `${API_BASE}/cv/demo/${template.slug}`;
+  // Fetch HTML directly if not supplied via props
+  useEffect(() => {
+    if (htmlContent || !template?.slug) return;
+    let cancelled = false;
+
+    fetch(`/cv/demo/${template.slug}`)
+      .then((res) => (res.ok ? res.text() : null))
+      .then((html) => {
+        if (!cancelled && html) {
+          setHtmlContent(html);
+          setLoaded(true);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [template?.slug, htmlContent]);
+
+  const demoUrl = `/cv/demo/${template.slug}`;
 
   return (
     <div
@@ -41,7 +69,8 @@ export default function TemplateThumbnail({
       className={`relative w-full h-full select-none overflow-hidden bg-white dark:bg-slate-950 flex items-start justify-center ${className}`}
     >
       <iframe
-        src={demoUrl}
+        srcDoc={htmlContent || undefined}
+        src={!htmlContent ? demoUrl : undefined}
         title={template.name || "CV Template"}
         loading="lazy"
         onLoad={() => setLoaded(true)}

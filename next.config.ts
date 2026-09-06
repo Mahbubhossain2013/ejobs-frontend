@@ -54,6 +54,16 @@ const nextConfig: NextConfig = {
       imgHosts.push(`https://${apiHostname}`);
     }
 
+    const frameHosts = [
+      "'self'",
+      "data:",
+      "blob:",
+      "https://*.ejobs.bd",
+    ];
+    if (apiHostname && apiHostname !== "127.0.0.1") {
+      frameHosts.push(`https://${apiHostname}`);
+    }
+
     return [
       {
         source: "/resume-builder/:path*",
@@ -82,7 +92,7 @@ const nextConfig: NextConfig = {
               "font-src 'self' data: https://fonts.maateen.me",
               `img-src ${imgHosts.join(" ")}`,
               `connect-src ${connectHosts.join(" ")}`,
-              "frame-src 'self' data: blob:",
+              `frame-src ${frameHosts.join(" ")}`,
               "frame-ancestors 'self'",
             ].join("; "),
           },
