@@ -762,7 +762,7 @@ export default function HomePage() {
             ) : hotJobs.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                 {hotJobs.slice(0, 30).map((job: any) => (
-                  <Link key={job.id} href={`/jobs/${job.id}`}>
+                  <Link key={job.id} href={`/jobs/${job.id}`} className="block h-full">
                     <div className="border border-border rounded-xl p-4 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-pointer h-full flex flex-col dark:hidden" style={{ backgroundColor: hjCardBg, color: hjCardText }}>
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="font-bold text-sm line-clamp-2 flex-1">{job.title}</h3>
@@ -800,7 +800,7 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                    <div className="border border-border rounded-xl p-4 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-pointer h-full flex flex-col hidden dark:block" style={{ backgroundColor: hjCardBgDark, color: hjCardTextDark }}>
+                    <div className="border border-border rounded-xl p-4 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-pointer h-full hidden dark:flex flex-col" style={{ backgroundColor: hjCardBgDark, color: hjCardTextDark }}>
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="font-bold text-sm line-clamp-2 flex-1">{job.title}</h3>
                         {!!job.is_promoted && (
@@ -870,7 +870,7 @@ export default function HomePage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {remoteJobs.slice(0, 30).map((job: any) => (
-                <Link key={job.id} href={`/jobs/${job.id}`}>
+                <Link key={job.id} href={`/jobs/${job.id}`} className="block h-full">
                   <div className="border border-border rounded-lg p-3 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-pointer h-full flex flex-col dark:hidden" style={{ background: rjCardBg, color: rjCardText }}>
                     <h4 className="font-bold text-xs line-clamp-2 mb-1">{job.title}</h4>
                     <p className="text-[11px] mb-1 flex items-center gap-1" style={{ opacity: 0.7 }}>
@@ -893,7 +893,7 @@ export default function HomePage() {
                       </span>
                     </div>
                   </div>
-                  <div className="border border-border rounded-lg p-3 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-pointer h-full flex flex-col hidden dark:block" style={{ background: rjCardBgDark, color: rjCardTextDark }}>
+                  <div className="border border-border rounded-lg p-3 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-pointer h-full hidden dark:flex flex-col" style={{ background: rjCardBgDark, color: rjCardTextDark }}>
                     <h4 className="font-bold text-xs line-clamp-2 mb-1">{job.title}</h4>
                     <p className="text-[11px] mb-1 flex items-center gap-1" style={{ opacity: 0.7 }}>
                       <Building2 className="w-3 h-3 shrink-0" />

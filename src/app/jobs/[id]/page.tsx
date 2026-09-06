@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import JobDetailClient from "./JobDetailClient";
 
-const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "https://admin.ejobs.bd/api";
 const cleanApiUrl = rawApiUrl.replace(/\/$/, "");
 const API_URL = cleanApiUrl.endsWith("/api") ? cleanApiUrl : `${cleanApiUrl}/api`;
 
@@ -9,16 +9,23 @@ export function generateStaticParams() {
   return [{ id: "__placeholder__" }];
 }
 
+export const dynamicParams = true;
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 async function fetchJob(id: string) {
+  if (!id || id === "__placeholder__") return null;
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2500);
     const res = await fetch(`${API_URL}/jobs/${id}`, {
       next: { revalidate: 60 },
       headers: { Accept: "application/json" },
+      signal: controller.signal,
     });
+    clearTimeout(timer);
     if (!res.ok) return null;
     const json = await res.json();
     return json?.data || json;
@@ -29,12 +36,19 @@ async function fetchJob(id: string) {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
+  if (!id || id === "__placeholder__") {
+    return {
+      title: "Job Details | eJobs",
+      description: "Find your dream job or apply online on eJobs.",
+    };
+  }
+
   const job = await fetchJob(id);
 
   if (!job) {
     return {
-      title: "Job Not Found",
-      description: "This job listing could not be found or may have been removed.",
+      title: "Job Details | eJobs",
+      description: "Find your dream job or apply online on eJobs.",
     };
   }
 
@@ -45,7 +59,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? job.description.replace(/<[^>]*>/g, "").slice(0, 160)
     : `Apply for ${title}${company ? ` at ${company}` : ""}${location ? ` in ${location}` : ""}`;
 
-  const fullTitle = company ? `${title} at ${company}` : title;
+  const fullTitle = company ? `${title} at ${company} | eJobs` : `${title} | eJobs`;
 
   return {
     title: fullTitle,
