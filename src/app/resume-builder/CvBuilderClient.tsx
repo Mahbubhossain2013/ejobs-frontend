@@ -33,6 +33,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import type { CvProfile, CvTemplate, Resume, Subscription } from "@/types";
 import { TEMPLATE_GRADIENTS, FAQ_ITEMS } from "@/constants/cv-builder";
 import TemplateThumbnail from "@/components/cv/TemplateThumbnail";
+import { downloadCvAsPdf } from "@/lib/cv-pdf-generator";
 import { getStoredResumes, storeResumes, profileDataToEditorData } from "@/lib/cv-builder-utils";
 
 export default function CvBuilderClient() {
@@ -179,13 +180,22 @@ export default function CvBuilderClient() {
 
   const handleDownloadPdf = async (uuid: string) => {
     try {
-      const blob = await resumeService.downloadPdf(uuid);
-      const url = URL.createObjectURL(new Blob([blob], { type: "application/pdf" }));
-      const a = document.createElement("a"); a.href = url; a.download = "resume.pdf";
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.success(isBn ? "PDF ডাউনলোড শুরু হয়েছে" : "PDF download started");
-    } catch { toast.error(isBn ? "ডাউনলোড ব্যর্থ" : "Download failed"); }
+      toast.info(isBn ? "উচ্চমানের PDF তৈরি হচ্ছে..." : "Preparing high-quality PDF...");
+      let html = "";
+      try {
+        html = await resumeService.renderPreview(uuid);
+      } catch {}
+
+      if (html && html.length > 50) {
+        await downloadCvAsPdf(html, `resume-${uuid}`);
+        toast.success(isBn ? "🎉 PDF ডাউনলোড সম্পন্ন হয়েছে!" : "🎉 PDF downloaded successfully!");
+        return;
+      }
+
+      window.open(`/cv/preview/${uuid}`, "_blank");
+    } catch {
+      window.open(`/cv/preview/${uuid}`, "_blank");
+    }
   };
 
   const handleShareToggle = async (resume: Resume) => {

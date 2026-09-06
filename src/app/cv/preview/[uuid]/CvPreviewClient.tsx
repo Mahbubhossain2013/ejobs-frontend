@@ -10,6 +10,7 @@ import {
   ArrowLeft, Download, Share2, LinkIcon, Loader2,
   Lock, Globe, Printer,
 } from "lucide-react";
+import { printCvHtml, downloadCvAsPdf } from "@/lib/cv-pdf-generator";
 
 const A4_WIDTH_PX = 794;
 const A4_HEIGHT_PX = Math.round(A4_WIDTH_PX * 1.414);
@@ -105,6 +106,11 @@ export default function CvPreviewClient() {
   const handleDownloadPdf = async () => {
     setDownloading(true);
     try {
+      if (html) {
+        await downloadCvAsPdf(html, `resume-${uuid}`);
+        toast.success(isBn ? "🎉 PDF ডাউনলোড সম্পন্ন হয়েছে!" : "🎉 PDF downloaded successfully!");
+        return;
+      }
       const blob = await resumeService.downloadPdf(uuid);
       if (!blob || blob.size < 100) {
         throw new Error("Empty or invalid PDF");
@@ -117,9 +123,18 @@ export default function CvPreviewClient() {
       a.click();
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 5000);
-      toast.success(isBn ? "PDF ডাউনলোড শুরু হয়েছে" : "PDF download started");
+      toast.success(isBn ? "PDF ডাউনলোড সম্পন্ন হয়েছে" : "PDF download complete");
     } catch (err: any) {
-      toast.error(isBn ? "ডাউনলোড ব্যর্থ হয়েছে" : "Download failed. Please try again.");
+      if (html) {
+        printCvHtml(html);
+        toast.info(
+          isBn
+            ? "প্রিন্ট ডায়ালগ থেকে 'Save as PDF' নির্বাচন করে সেভ করুন।"
+            : "Select 'Save as PDF' in the destination list."
+        );
+      } else {
+        toast.error(isBn ? "ডাউনলোড ব্যর্থ হয়েছে" : "Download failed. Please try again.");
+      }
     } finally {
       setDownloading(false);
     }
@@ -127,18 +142,7 @@ export default function CvPreviewClient() {
 
   const handlePrint = () => {
     if (!html) return;
-    const printWindow = window.open("", "_blank");
-    if (printWindow) {
-      printWindow.document.open();
-      printWindow.document.write(html);
-      printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => {
-        printWindow.print();
-      }, 500);
-    } else {
-      window.print();
-    }
+    printCvHtml(html);
   };
 
   const handleShareToggle = async () => {

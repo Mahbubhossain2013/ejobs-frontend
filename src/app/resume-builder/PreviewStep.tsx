@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import type { CvTemplate } from "@/types";
+import { printCvHtml, downloadCvAsPdf } from "@/lib/cv-pdf-generator";
 
 const A4_WIDTH_PX = 794;
 const A4_HEIGHT_PX = Math.round(A4_WIDTH_PX * 1.414);
@@ -291,62 +292,7 @@ export default function PreviewStep({
       // ignore
     }
 
-    try {
-      let printFrame = document.getElementById("cv-print-frame") as HTMLIFrameElement;
-      if (printFrame) {
-        printFrame.remove();
-      }
-      printFrame = document.createElement("iframe");
-      printFrame.id = "cv-print-frame";
-      printFrame.style.position = "fixed";
-      printFrame.style.right = "0";
-      printFrame.style.bottom = "0";
-      printFrame.style.width = "0";
-      printFrame.style.height = "0";
-      printFrame.style.border = "0";
-      document.body.appendChild(printFrame);
-
-      const frameDoc = printFrame.contentWindow?.document;
-      if (frameDoc) {
-        frameDoc.open();
-        frameDoc.write(previewHtml);
-        frameDoc.close();
-
-        const triggerPrint = () => {
-          setTimeout(() => {
-            try {
-              printFrame.contentWindow?.focus();
-              printFrame.contentWindow?.print();
-            } catch {
-              window.print();
-            }
-          }, 400);
-        };
-
-        // If images exist in iframe, wait for them or timeout
-        if (printFrame.contentWindow) {
-          printFrame.contentWindow.onload = triggerPrint;
-          // Fallback if onload doesn't fire
-          setTimeout(triggerPrint, 1200);
-          return;
-        }
-      }
-    } catch {
-      // Fallback
-    }
-
-    const printWindow = window.open("", "_blank");
-    if (printWindow) {
-      printWindow.document.open();
-      printWindow.document.write(previewHtml);
-      printWindow.document.close();
-      setTimeout(() => {
-        printWindow.focus();
-        printWindow.print();
-      }, 500);
-    } else {
-      window.print();
-    }
+    printCvHtml(previewHtml);
   };
 
   const handleDownloadPdf = async () => {
@@ -355,40 +301,42 @@ export default function PreviewStep({
       return;
     }
 
-    setDownloadingPdf(true);
-    try {
-      if (createdResumeUuid) {
-        const token = (() => {
-          try {
-            const raw = localStorage.getItem("auth-storage");
-            return JSON.parse(raw || "")?.state?.token || "";
-          } catch { return ""; }
-        })();
-        const url = `/api/cv/resumes/${createdResumeUuid}/download${token ? `?token=${encodeURIComponent(token)}` : ""}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const ct = res.headers.get("content-type") || "";
-          if (ct.includes("pdf") || ct.includes("octet-stream")) {
-            const blob = await res.blob();
-            const blobUrl = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = blobUrl;
-            a.download = `${data.personal.full_name || "My_CV"}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(blobUrl);
-            toast.success(isBn ? "🎉 PDF ডাউনলোড সম্পন্ন হয়েছে!" : "PDF downloaded successfully!");
-            return;
-          }
-        }
-      }
+    saveToLocalHistory();
 
-      // If no uuid or direct endpoint didn't return PDF, trigger print-to-PDF dialog
-      handlePrint();
-      toast.info(isBn ? "প্রিন্ট ডায়ালগ থেকে 'Save as PDF' নির্বাচন করে সেভ করুন।" : "Select 'Save as PDF' in the destination list.");
-    } catch {
-      handlePrint();
+    // Auto-save in background if authenticated
+    if (isAuthenticated && !createdResumeUuid) {
+      api.post("/cv/create", {
+        template_slug: selectedSlug,
+        title: `${data.personal.full_name || "My Resume"} - ${selectedSlug}`,
+        data_snapshot: buildPayload(),
+      }).then((res) => {
+        const uuid = res.data?.data?.uuid || res.data?.uuid;
+        if (uuid) {
+          setCreatedResumeUuid(uuid);
+          saveToLocalHistory(uuid);
+        }
+      }).catch(() => {});
+    }
+
+    setDownloadingPdf(true);
+    const candidateName =
+      `${data.personal.first_name || ""} ${data.personal.last_name || ""}`.trim() ||
+      data.personal.full_name ||
+      "My_CV";
+
+    try {
+      await downloadCvAsPdf(previewHtml, candidateName);
+      toast.success(
+        isBn ? "🎉 PDF সফলভাবে ডাউনলোড হয়েছে!" : "🎉 PDF downloaded successfully!"
+      );
+    } catch (err: any) {
+      console.warn("Direct PDF render failed, falling back to print dialog:", err);
+      printCvHtml(previewHtml);
+      toast.info(
+        isBn
+          ? "প্রিন্ট ডায়ালগ থেকে 'Save as PDF' নির্বাচন করে সেভ করুন।"
+          : "Select 'Save as PDF' in the destination list."
+      );
     } finally {
       setDownloadingPdf(false);
     }

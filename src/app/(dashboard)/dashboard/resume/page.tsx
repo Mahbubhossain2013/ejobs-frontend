@@ -54,6 +54,7 @@ import {
 import { toast } from "sonner";
 import { formatCurrency, formatDate, getStorageUrl } from "@/lib/utils";
 import { getApiErrorMessage } from "@/lib/api-client";
+import { downloadCvAsPdf, printCvHtml } from "@/lib/cv-pdf-generator";
 import type { CvTemplate, Resume } from "@/types";
 
 const RESUME_STORAGE_KEY = "user_resumes";
@@ -250,21 +251,33 @@ export default function ResumePage() {
 
   const handleDownload = async (uuid: string) => {
     try {
-      const blob = await resumeService.downloadResume(uuid);
-      if (!blob || blob.size < 50) throw new Error("Empty PDF");
-      const url = URL.createObjectURL(
-        new Blob([blob], { type: "application/pdf" })
-      );
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `resume-${uuid}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-      toast.success(isBn ? "ডাউনলোড শুরু হয়েছে" : "Download started");
+      toast.info(isBn ? "উচ্চমানের PDF তৈরি হচ্ছে..." : "Rendering high-quality PDF...");
+      let html = "";
+      try {
+        html = await resumeService.renderPreview(uuid);
+      } catch {}
+
+      if (!html) {
+        const found = resumes.find((r) => r.uuid === uuid);
+        if (found?.template_slug) {
+          try {
+            html = await resumeService.getLivePreview(found.template_slug);
+          } catch {}
+        }
+      }
+
+      if (html && html.length > 50) {
+        const resumeItem = resumes.find((r) => r.uuid === uuid);
+        const fileName = resumeItem?.title || `resume-${uuid}`;
+        await downloadCvAsPdf(html, fileName);
+        toast.success(
+          isBn ? "🎉 PDF সফলভাবে ডাউনলোড হয়েছে!" : "🎉 PDF downloaded successfully!"
+        );
+        return;
+      }
+
+      window.open(`/cv/preview/${uuid}`, "_blank");
     } catch {
-      toast.info(isBn ? "প্রিভিউ পেজ ওপেন হচ্ছে, সেখান থেকে সরাসরি প্রিন্ট বা PDF সেভ করুন" : "Opening preview to print/save");
       window.open(`/cv/preview/${uuid}`, "_blank");
     }
   };
