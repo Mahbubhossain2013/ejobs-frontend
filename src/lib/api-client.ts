@@ -74,15 +74,12 @@ function clearAuthStore() {
 
 api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    if (typeof window !== "undefined") {
-      const token = getStoredToken();
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-
-    // Fetch CSRF cookie before state-changing requests
-    if (["post", "put", "patch", "delete"].includes(config.method?.toLowerCase() || "")) {
+    // If Bearer token is present, API is authenticated via token and doesn't need CSRF cookie.
+    // Only fetch/attach CSRF cookie for cookie-based sessions without Bearer token.
+    const token = typeof window !== "undefined" ? getStoredToken() : null;
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    } else if (["post", "put", "patch", "delete"].includes(config.method?.toLowerCase() || "")) {
       await ensureCsrfCookie();
       const xsrfToken = document.cookie
         .split("; ")

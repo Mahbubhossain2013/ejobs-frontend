@@ -12,15 +12,14 @@ interface DefaultAvatarProps {
 }
 
 export function DefaultAvatar({ src, name, className, fallback }: DefaultAvatarProps) {
-  const { settings } = useThemeStore();
-  const roundLogo = getStorageUrl(settings.round_logo || settings.site_logo);
-  const imageSrc = getStorageUrl(src) || roundLogo || undefined;
+  const resolved = getStorageUrl(src);
+  const imageSrc = resolved || undefined;
 
   return (
     <Avatar className={className}>
-      <AvatarImage src={imageSrc} alt={name || "Avatar"} />
-      <AvatarFallback>
-        {fallback || getInitials(name || "?")}
+      {imageSrc && <AvatarImage src={imageSrc} alt={name || "Avatar"} className="object-cover" />}
+      <AvatarFallback className="bg-primary/10 text-primary font-semibold select-none">
+        {fallback || getInitials(name || "U")}
       </AvatarFallback>
     </Avatar>
   );

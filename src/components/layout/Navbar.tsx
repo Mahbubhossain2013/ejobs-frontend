@@ -298,7 +298,7 @@ export default function Navbar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-2 px-2 hover:bg-black/5 dark:hover:bg-white/10" style={{ color: settings.nav_text_color || undefined }}>
-                    <DefaultAvatar src={user?.avatar} name={user?.name} className="h-7 w-7" fallback={<span className="text-xs">{getInitials(user?.name || "U")}</span>} />
+                    <DefaultAvatar src={user?.avatar || (user as any)?.profile?.avatar} name={user?.name} className="h-7 w-7" fallback={<span className="text-xs font-semibold">{getInitials(user?.name || "U")}</span>} />
                     <ChevronDown className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -393,7 +393,7 @@ export default function Navbar() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button className="flex items-center gap-3 hover:bg-muted/50 rounded-lg p-2 -m-2 w-full text-left transition-colors">
-                        <DefaultAvatar src={user?.avatar} name={user?.name} className="h-10 w-10" />
+                        <DefaultAvatar src={user?.avatar || (user as any)?.profile?.avatar} name={user?.name} className="h-10 w-10" fallback={<span className="text-sm font-semibold">{getInitials(user?.name || "U")}</span>} />
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold text-sm truncate">{user?.name}</p>
                           {subscription?.status === "active" && subscription.plan_name && (

@@ -84,46 +84,51 @@ export default function PreviewStep({
       .catch(() => {});
   }, []);
 
+  // Use ref so that buildPayload is always current without causing useEffect re-runs
+  const dataRef = useRef(data);
+  useEffect(() => { dataRef.current = data; }, [data]);
+
   const buildPayload = useCallback(() => {
+    const d = dataRef.current;
     const fullName =
-      data.personal.full_name ||
-      `${data.personal.first_name || ""} ${data.personal.last_name || ""}`.trim() ||
+      d.personal.full_name ||
+      `${d.personal.first_name || ""} ${d.personal.last_name || ""}`.trim() ||
       "Your Name";
 
     return {
       personal: {
         full_name: fullName,
-        first_name: data.personal.first_name,
-        last_name: data.personal.last_name,
-        title: data.personal.current_position || "",
-        current_position: data.personal.current_position || "",
-        email: data.personal.email,
-        phone: data.personal.phone,
-        alt_phone: (data.personal as any).alt_phone || "",
-        address: data.personal.address,
-        permanent_address: (data.personal as any).permanent_address || "",
-        city: data.personal.city,
-        location: data.personal.city || data.personal.address,
-        photo_url: data.personal.photo_url,
-        dob: data.personal.dob,
-        place_of_birth: data.personal.place_of_birth,
-        driving_license: data.personal.driving_license,
-        gender: data.personal.gender,
-        nationality: data.personal.nationality,
-        marital_status: data.personal.marital_status,
-        father_name: (data.personal as any).father_name || "",
-        mother_name: (data.personal as any).mother_name || "",
-        religion: (data.personal as any).religion || "",
-        blood_group: (data.personal as any).blood_group || "",
-        nid: (data.personal as any).nid || "",
-        linkedin: data.personal.linkedin,
-        github: data.personal.github,
-        website: data.personal.website,
-        additional_info: data.personal.additional_info,
-        zip_code: data.personal.zip_code,
+        first_name: d.personal.first_name,
+        last_name: d.personal.last_name,
+        title: d.personal.current_position || "",
+        current_position: d.personal.current_position || "",
+        email: d.personal.email,
+        phone: d.personal.phone,
+        alt_phone: (d.personal as any).alt_phone || "",
+        address: d.personal.address,
+        permanent_address: (d.personal as any).permanent_address || "",
+        city: d.personal.city,
+        location: d.personal.city || d.personal.address,
+        photo_url: d.personal.photo_url,
+        dob: d.personal.dob,
+        place_of_birth: d.personal.place_of_birth,
+        driving_license: d.personal.driving_license,
+        gender: d.personal.gender,
+        nationality: d.personal.nationality,
+        marital_status: d.personal.marital_status,
+        father_name: (d.personal as any).father_name || "",
+        mother_name: (d.personal as any).mother_name || "",
+        religion: (d.personal as any).religion || "",
+        blood_group: (d.personal as any).blood_group || "",
+        nid: (d.personal as any).nid || "",
+        linkedin: d.personal.linkedin,
+        github: d.personal.github,
+        website: d.personal.website,
+        additional_info: d.personal.additional_info,
+        zip_code: d.personal.zip_code,
       },
-      summary: data.resume_objective?.description || "",
-      experience: (data.work_experience || []).map((w) => ({
+      summary: d.resume_objective?.description || "",
+      experience: (d.work_experience || []).map((w) => ({
         company: w.employer,
         position: w.job_title,
         location: w.city,
@@ -133,7 +138,7 @@ export default function PreviewStep({
         is_current: w.is_current,
         employment_type: w.employment_type,
       })),
-      education: (data.education || []).map((e) => ({
+      education: (d.education || []).map((e) => ({
         institution: e.school,
         degree: e.degree,
         location: e.city,
@@ -144,29 +149,29 @@ export default function PreviewStep({
         board: e.board,
         grade: e.grade,
       })),
-      skills: (data.skills || []).map((s) => ({
+      skills: (d.skills || []).map((s) => ({
         name: s.skill,
         level: s.level ? Number(s.level) : null,
       })),
-      languages: (data.languages || []).map((l) => ({
+      languages: (d.languages || []).map((l) => ({
         name: l.language,
         proficiency: l.level,
       })),
-      certifications: (data.certifications || [])
+      certifications: (d.certifications || [])
         .filter((c) => c.name?.trim())
         .map((c) => ({ name: c.name, issuer: c.issuer, date: c.date })),
-      awards: (data.achievements || [])
+      awards: (d.achievements || [])
         .filter((a) => a.description?.trim())
         .map((a) => ({ name: a.description })),
-      projects: (data.projects || [])
+      projects: (d.projects || [])
         .filter((p) => p.name?.trim())
         .map((p) => ({
           name: p.name,
           description: p.description,
           url: p.url,
         })),
-      hobbies: (data.interests || []).map((i) => i.hobby),
-      references: (data.references || [])
+      hobbies: (d.interests || []).map((i) => i.hobby),
+      references: (d.references || [])
         .filter((r) => r.name?.trim())
         .map((r) => ({
           name: r.name,
@@ -176,7 +181,7 @@ export default function PreviewStep({
           email: r.email,
           relation: r.relation,
         })),
-      training: (data.training || [])
+      training: (d.training || [])
         .filter((t) => t.title?.trim())
         .map((t) => ({
           title: t.title,
@@ -184,12 +189,13 @@ export default function PreviewStep({
           duration: t.duration,
         })),
       social_links: {
-        linkedin: data.personal.linkedin,
-        github: data.personal.github,
-        portfolio: data.personal.website,
+        linkedin: d.personal.linkedin,
+        github: d.personal.github,
+        portfolio: d.personal.website,
       },
     };
-  }, [data]);
+  }, []); // stable - reads from dataRef
+
 
   useEffect(() => {
     if (!selectedSlug) return;
@@ -197,19 +203,26 @@ export default function PreviewStep({
 
     const payload = buildPayload();
 
-    api
-      .post(`/cv/live-preview/${selectedSlug}`, payload, {
-        headers: { "Content-Type": "application/json" },
-        responseType: "text",
+    // Use plain fetch via Next.js proxy rewrite /api/* → backend
+    fetch(`/api/cv/live-preview/${selectedSlug}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "text/html,*/*" },
+      body: JSON.stringify(payload),
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text().catch(() => "");
+          console.error("CV preview error:", res.status, text.slice(0, 300));
+          throw new Error(`HTTP ${res.status}`);
+        }
+        return res.text();
       })
-      .then((res) => {
-        setPreviewHtml(res.data);
+      .then((html) => {
+        setPreviewHtml(html);
       })
-      .catch(() => {
-        fetch(`https://admin.ejobs.bd/cv/demo/${selectedSlug}`)
-          .then((r) => r.text())
-          .then((html) => setPreviewHtml(html))
-          .catch(() => setPreviewHtml("<p>Preview unavailable</p>"));
+      .catch((err) => {
+        console.error("CV preview fetch failed:", err);
+        setPreviewHtml("<p style='padding:20px;color:red;'>Preview unavailable: " + err.message + "</p>");
       })
       .finally(() => setPreviewLoading(false));
   }, [selectedSlug, buildPayload]);
@@ -217,27 +230,104 @@ export default function PreviewStep({
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [createdResumeUuid, setCreatedResumeUuid] = useState<string | null>(null);
 
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+
   const handlePrint = () => {
     if (!previewHtml) {
       toast.error(isBn ? "প্রিভিউ প্রস্তুত হয়নি" : "Preview is not ready yet");
       return;
     }
+
+    try {
+      let printFrame = document.getElementById("cv-print-frame") as HTMLIFrameElement;
+      if (!printFrame) {
+        printFrame = document.createElement("iframe");
+        printFrame.id = "cv-print-frame";
+        printFrame.style.position = "fixed";
+        printFrame.style.right = "0";
+        printFrame.style.bottom = "0";
+        printFrame.style.width = "0";
+        printFrame.style.height = "0";
+        printFrame.style.border = "0";
+        document.body.appendChild(printFrame);
+      }
+
+      const frameDoc = printFrame.contentWindow?.document;
+      if (frameDoc) {
+        frameDoc.open();
+        frameDoc.write(previewHtml);
+        frameDoc.close();
+        setTimeout(() => {
+          try {
+            printFrame.contentWindow?.focus();
+            printFrame.contentWindow?.print();
+          } catch {
+            window.print();
+          }
+        }, 500);
+        return;
+      }
+    } catch {
+      // Fallback
+    }
+
     const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      toast.error(
-        isBn
-          ? "পপআপ ব্লক করা হয়েছে! দয়া করে ব্রাউজারে পপআপ অ্যালাউ করুন।"
-          : "Popup was blocked by your browser! Please allow popups."
-      );
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(previewHtml);
+      printWindow.document.close();
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+      }, 500);
+    } else {
+      window.print();
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!previewHtml) {
+      toast.error(isBn ? "প্রিভিউ প্রস্তুত হয়নি" : "Preview is not ready yet");
       return;
     }
-    printWindow.document.open();
-    printWindow.document.write(previewHtml);
-    printWindow.document.close();
-    setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
-    }, 500);
+
+    setDownloadingPdf(true);
+    try {
+      if (createdResumeUuid) {
+        const token = (() => {
+          try {
+            const raw = localStorage.getItem("auth-storage");
+            return JSON.parse(raw || "")?.state?.token || "";
+          } catch { return ""; }
+        })();
+        const url = `/api/cv/resumes/${createdResumeUuid}/download${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const ct = res.headers.get("content-type") || "";
+          if (ct.includes("pdf") || ct.includes("octet-stream")) {
+            const blob = await res.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = blobUrl;
+            a.download = `${data.personal.full_name || "My_CV"}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(blobUrl);
+            toast.success(isBn ? "🎉 PDF ডাউনলোড সম্পন্ন হয়েছে!" : "PDF downloaded successfully!");
+            return;
+          }
+        }
+      }
+
+      // If no uuid or direct endpoint didn't return PDF, trigger print-to-PDF dialog
+      handlePrint();
+      toast.info(isBn ? "প্রিন্ট ডায়ালগ থেকে 'Save as PDF' নির্বাচন করে সেভ করুন।" : "Select 'Save as PDF' in the destination list.");
+    } catch {
+      handlePrint();
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   const handleSelectTemplate = (slug: string) => {
@@ -260,6 +350,9 @@ export default function PreviewStep({
     if (!hasAuth) {
       // Guest User can directly print their CV
       setSuccessModalOpen(true);
+      toast.success(
+        isBn ? "সিভি প্রস্তুত! নিচে PDF ডাউনলোড বা প্রিন্ট অপশন নির্বাচন করুন।" : "CV is ready! Choose Print or Download below."
+      );
       return;
     }
 
@@ -281,6 +374,9 @@ export default function PreviewStep({
     } catch (e: any) {
       // Even if API save throws, open success dialog for direct printing
       setSuccessModalOpen(true);
+      toast.info(
+        isBn ? "সিভি প্রস্তুত! নিচে PDF ডাউনলোড বা প্রিন্ট অপশন নির্বাচন করুন।" : "CV is ready! Choose Print or Download below."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -464,39 +560,51 @@ export default function PreviewStep({
       {/* Success Dialog after Submit */}
       <Dialog open={successModalOpen} onOpenChange={setSuccessModalOpen}>
         <DialogContent className="max-w-lg p-6 bg-card border-2 shadow-2xl rounded-2xl text-center">
-          <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">
+          <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner font-bold">
             ✓
           </div>
           <DialogTitle className="text-2xl font-black text-foreground">
-            {isBn ? "🎉 সিভি সফলভাবে সম্পন্ন হয়েছে!" : "🎉 CV Created Successfully!"}
+            {isBn ? "🎉 আপনার সিভি সম্পন্ন হয়েছে!" : "🎉 CV Created Successfully!"}
           </DialogTitle>
           <p className="text-sm text-muted-foreground mt-2">
             {isBn
-              ? "আপনার তৈরি করা সিভি প্রস্তুত। আপনি সরাসরি প্রিন্ট অথবা PDF হিসেবে সেভ করতে পারেন।"
-              : "Your custom CV is ready. You can print or download it as PDF directly."}
+              ? "আপনার সিভি প্রস্তুত। নিচের অপশনগুলো থেকে সরাসরি PDF ডাউনলোড অথবা প্রিন্ট করুন।"
+              : "Your custom CV is ready. Download it as PDF or print directly."}
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
-            <Button
-              size="lg"
-              onClick={handlePrint}
-              className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg"
-            >
-              <Download className="w-5 h-5" />
-              {isBn ? "প্রিন্ট / PDF সেভ করুন" : "Print / Save PDF"}
-            </Button>
+          <div className="flex flex-col gap-3 mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Button
+                size="lg"
+                onClick={handleDownloadPdf}
+                disabled={downloadingPdf}
+                className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg h-12"
+              >
+                {downloadingPdf ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                {isBn ? "PDF ডাউনলোড করুন" : "Download PDF"}
+              </Button>
+
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={handlePrint}
+                className="gap-2 border-2 border-primary text-primary hover:bg-primary/10 font-bold h-12"
+              >
+                <FileCheck className="w-5 h-5" />
+                {isBn ? "সরাসরি প্রিন্ট করুন" : "Direct Print"}
+              </Button>
+            </div>
 
             <Button
-              size="lg"
-              variant="outline"
+              size="default"
+              variant="ghost"
               onClick={() => {
                 setSuccessModalOpen(false);
                 router.push("/dashboard/resume");
               }}
-              className="gap-2 font-bold"
+              className="text-xs text-muted-foreground hover:text-foreground mt-1"
             >
-              <FileCheck className="w-5 h-5" />
-              {isBn ? "আমার সিভি ড্যাশবোর্ড" : "Go to Dashboard"}
+              {isBn ? "আমার সিভি ড্যাশবোর্ডে যান →" : "Go to CV Dashboard →"}
             </Button>
           </div>
         </DialogContent>

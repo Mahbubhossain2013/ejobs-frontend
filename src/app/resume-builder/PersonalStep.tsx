@@ -111,21 +111,43 @@ export default function PersonalStep({
     setUploadingPhoto(true);
     try {
       const compressed = await compressToWebp(file);
-      const formData = new FormData();
-      formData.append("photo", compressed);
-      const res = await api.post("/candidate/cv/profile/upload-photo", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      const photoUrl = res.data?.data?.photo_url || res.data?.photo_url;
-      if (photoUrl) {
-        updatePersonal({ photo_url: photoUrl });
-        toast.success(isBn ? "ছবি সফলভাবে আপলোড হয়েছে!" : "Photo uploaded successfully!");
-      } else {
-        toast.error(isBn ? "ছবি আপলোড ব্যর্থ" : "Upload failed");
+
+      // Check if user is logged in
+      const hasAuth = !!user;
+
+      if (hasAuth) {
+        try {
+          const formData = new FormData();
+          formData.append("photo", compressed);
+          const res = await api.post("/candidate/cv/profile/upload-photo", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          const photoUrl = res.data?.data?.photo_url || res.data?.photo_url;
+          if (photoUrl) {
+            updatePersonal({ photo_url: photoUrl });
+            toast.success(isBn ? "ছবি সফলভাবে আপলোড হয়েছে!" : "Photo uploaded successfully!");
+            return;
+          }
+        } catch (apiErr: any) {
+          // If 401 unauthenticated, continue to local FileReader fallback smoothly
+          if (apiErr?.response?.status !== 401) {
+            console.warn("API photo upload failed, using local preview", apiErr);
+          }
+        }
       }
+
+      // Guest / Offline / Fallback: Read as base64 Data URL so the photo renders in CV preview immediately
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        const dataUrl = uploadEvent.target?.result as string;
+        if (dataUrl) {
+          updatePersonal({ photo_url: dataUrl });
+          toast.success(isBn ? "ছবি যুক্ত করা হয়েছে!" : "Photo added successfully!");
+        }
+      };
+      reader.readAsDataURL(compressed);
     } catch (err: any) {
-      const msg = err?.response?.data?.message || (isBn ? "ছবি আপলোড ব্যর্থ" : "Upload failed");
-      toast.error(msg);
+      toast.error(isBn ? "ছবি প্রক্রিয়াকরণ ব্যর্থ" : "Photo processing failed");
     } finally {
       setUploadingPhoto(false);
     }
