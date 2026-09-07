@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MapPin, DollarSign, Briefcase } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getStorageUrl } from "@/lib/utils";
 
 interface RecommendedJob {
   id: number;
@@ -84,9 +84,12 @@ export default function RecommendedJobs() {
                   <h3 className="font-semibold text-sm line-clamp-1">{job.title}</h3>
                   {job.company?.logo && (
                     <img
-                      src={job.company.logo}
+                      src={getStorageUrl(job.company.logo)}
                       alt={job.company.name}
                       className="h-8 w-8 rounded object-cover shrink-0 ml-2"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = "none";
+                      }}
                     />
                   )}
                 </div>

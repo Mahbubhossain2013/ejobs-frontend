@@ -68,31 +68,45 @@ export function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+const STORAGE_BASE = (
+  process.env.NEXT_PUBLIC_STORAGE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://admin.ejobs.bd"
+)
+  .replace(/\/api\/?$/, "")
+  .replace(/\/$/, "");
+
 /**
  * Centralized storage URL builder.
  * - Returns empty string for empty/missing paths
- * - Passes through http/https/blob/data URLs as-is
- * - Strips backend domain from absolute URLs (e.g. https://admin.ejobs.bd/storage/... → /storage/...)
- * - Ensures relative paths start with /storage/
+ * - Passes through http/https/blob/data URLs as-is (fixing local test domains if present)
+ * - Returns absolute URL pointing to backend storage (https://admin.ejobs.bd/storage/...)
  */
 export function getStorageUrl(path: string | null | undefined): string {
   if (!path || typeof path !== "string") return "";
   const trimmed = path.trim();
   if (!trimmed) return "";
 
+  // Replace local test origins if stored in DB
+  if (trimmed.includes("127.0.0.1:8000/storage/") || trimmed.includes("localhost:8000/storage/")) {
+    return trimmed.replace(/^https?:\/\/(127\.0\.0\.1|localhost):8000\/storage\//, `${STORAGE_BASE}/storage/`);
+  }
+
   // Already a full URL or blob/data — pass through
-  if (trimmed.startsWith("http") || trimmed.startsWith("blob:") || trimmed.startsWith("data:")) {
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("blob:") ||
+    trimmed.startsWith("data:")
+  ) {
     return trimmed;
   }
 
   // Strip any leading slashes for normalization
   const clean = trimmed.replace(/^\/+/, "");
 
-  // If it already starts with "storage/", add leading slash
-  if (clean.startsWith("storage/")) {
-    return `/${clean}`;
-  }
+  // If it starts with "storage/", strip it to attach cleanly to STORAGE_BASE/storage/
+  const cleanPath = clean.startsWith("storage/") ? clean.slice(8) : clean;
 
-  // Anything else — assume it's a relative path inside storage
-  return `/storage/${clean}`;
+  return `${STORAGE_BASE}/storage/${cleanPath}`;
 }

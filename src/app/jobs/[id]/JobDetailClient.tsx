@@ -25,7 +25,7 @@ import {
   Globe, Award, Rocket, Megaphone, Bookmark, Search, Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, getStorageUrl } from "@/lib/utils";
 import { aiService } from "@/services/ai.service";
 import { trackBehavior } from "@/hooks/use-behavior-tracker";
 import DOMPurify from "dompurify";
@@ -227,7 +227,7 @@ export default function JobDetailClient({ jobId }: Props) {
 
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex items-start gap-4">
-              {companyLogo && <img src={companyLogo} alt={companyName || ""} className="w-14 h-14 rounded-xl object-cover border shadow-sm" />}
+              {companyLogo && <img src={getStorageUrl(companyLogo)} alt={companyName || ""} className="w-14 h-14 rounded-xl object-cover border shadow-sm" onError={(e) => { (e.currentTarget as HTMLElement).style.display = "none"; }} />}
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">{job.title}</h1>
                 <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-muted-foreground">
@@ -378,7 +378,7 @@ export default function JobDetailClient({ jobId }: Props) {
             {activeTab === "company" && (<div className="space-y-6">
               {typeof job.company === "object" && job.company ? (
                 <Card><CardContent className="p-6"><div className="flex items-start gap-4">
-                  {companyLogo && <img src={companyLogo} alt={companyName || ""} className="w-16 h-16 rounded-xl object-cover border" />}
+                  {companyLogo && <img src={getStorageUrl(companyLogo)} alt={companyName || ""} className="w-16 h-16 rounded-xl object-cover border" onError={(e) => { (e.currentTarget as HTMLElement).style.display = "none"; }} />}
                   <div className="flex-1"><h3 className="text-lg font-bold">{companyName}</h3>{companyLocation && <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1"><MapPin className="h-3.5 w-3.5" />{companyLocation}</p>}
                     <div className="flex gap-2 mt-4"><Button variant="outline" size="sm" asChild><Link href={`/companies/${companySlug}`}><ExternalLink className="h-3.5 w-3.5 mr-1" />{isBn ? "প্রোফাইল" : "View Profile"}</Link></Button></div>
                   </div>
@@ -403,7 +403,7 @@ export default function JobDetailClient({ jobId }: Props) {
           <div className="space-y-4 order-1 lg:order-1">
             {typeof job.company === "object" && job.company && (
               <Card><CardContent className="p-5"><h3 className="font-semibold mb-3 text-sm">{isBn ? "কোম্পানি" : "Company"}</h3><Link href={`/companies/${companySlug}`} className="flex items-center gap-3 group">
-                {companyLogo && <img src={companyLogo} alt={companyName || ""} className="w-12 h-12 rounded-lg object-cover border" />}
+                {companyLogo && <img src={getStorageUrl(companyLogo)} alt={companyName || ""} className="w-12 h-12 rounded-lg object-cover border" onError={(e) => { (e.currentTarget as HTMLElement).style.display = "none"; }} />}
                 <div className="flex-1 min-w-0"><p className="font-medium text-sm group-hover:text-primary transition-colors truncate">{companyName}</p>{companyLocation && <p className="text-xs text-muted-foreground">{companyLocation}</p>}</div>
                 <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0" />
               </Link></CardContent></Card>

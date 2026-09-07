@@ -54,6 +54,8 @@ export default function Navbar() {
   const { notifications, unreadCount, setNotifications } = useNotificationStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+  const [mobileLogoError, setMobileLogoError] = useState(false);
   const { data: subscription } = useQuery({
     queryKey: ["subscription", "current"],
     queryFn: () => subscriptionService.getMySubscription(),
@@ -204,12 +206,15 @@ export default function Navbar() {
       <div className="container mx-auto flex h-20 items-center justify-between gap-2 px-4 sm:px-6 lg:px-8 min-w-0">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-bold text-xl shrink-0 whitespace-nowrap overflow-hidden">
-          {settings.site_logo ? (
+          {settings.site_logo && !logoError ? (
             <Image
               src={getStorageUrl(settings.site_logo)!}
               alt={settings.site_name || "eJobs"}
-               width={32} height={32}
-               className="h-8 w-auto object-contain shrink-0" unoptimized
+              width={32}
+              height={32}
+              className="h-8 w-auto object-contain shrink-0"
+              unoptimized
+              onError={() => setLogoError(true)}
             />
           ) : (
             <span style={{ color: settings.nav_text_color || undefined }} className="font-bold">{settings.site_name || "eJobs"}</span>
@@ -376,10 +381,16 @@ export default function Navbar() {
             {/* Mobile Header */}
             <div className="flex items-center justify-between p-4 border-b">
               <SheetTitle className="flex items-center gap-2 text-lg font-bold">
-                 {settings.site_logo ? (
-                    <Image src={getStorageUrl(settings.site_logo)!}
-                      alt={settings.site_name || "eJobs"} width={48} height={48}
-                       className="h-10 w-auto object-contain" unoptimized />
+                 {settings.site_logo && !mobileLogoError ? (
+                    <Image
+                      src={getStorageUrl(settings.site_logo)!}
+                      alt={settings.site_name || "eJobs"}
+                      width={48}
+                      height={48}
+                      className="h-10 w-auto object-contain"
+                      unoptimized
+                      onError={() => setMobileLogoError(true)}
+                    />
                  ) : (
                   <span className="text-primary">{settings.site_name || "eJobs"}</span>
                 )}
