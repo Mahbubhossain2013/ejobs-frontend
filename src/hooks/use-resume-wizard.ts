@@ -30,6 +30,7 @@ interface Personal {
   github: string;
   website: string;
   additional_info: string;
+  signature_url?: string;
 }
 
 interface ResumeObjective {
@@ -132,6 +133,7 @@ const EMPTY_PERSONAL: Personal = {
   dob: "", place_of_birth: "", driving_license: "", gender: "",
   nationality: "Bangladeshi", marital_status: "", father_name: "", mother_name: "",
   religion: "", blood_group: "", nid: "", linkedin: "", github: "", website: "", additional_info: "",
+  signature_url: "",
 };
 
 const STORAGE_KEY = "resume_wizard_data";

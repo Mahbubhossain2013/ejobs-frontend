@@ -42,7 +42,10 @@ export function preparePrintableHtml(rawHtml: string): string {
         .card-box, 
         .exp-item, 
         .edu-item, 
-        .interest-card {
+        .interest-card,
+        .cv-signature-section,
+        .signature-section,
+        .signature-box {
           page-break-inside: avoid !important;
           break-inside: avoid !important;
         }
@@ -62,13 +65,48 @@ export function preparePrintableHtml(rawHtml: string): string {
       .interest-name { font-size: 10.5px !important; }
       .subtitle-left { font-size: 15px !important; }
       .name-title-left { font-size: 32px !important; }
+
+      /* Signature Styling */
+      .cv-signature-section, .signature-section {
+        display: flex !important;
+        justify-content: flex-end !important;
+        width: 100% !important;
+        margin-top: 35px !important;
+        padding-top: 15px !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
     </style>
   `;
 
-  if (rawHtml.includes("</head>")) {
-    return rawHtml.replace("</head>", `${printStyles}</head>`);
+  let processedHtml = rawHtml;
+
+  // If HTML doesn't have signature block yet, inject a fallback signature block
+  if (!processedHtml.includes("cv-signature-section") && !processedHtml.includes("signature-box")) {
+    const fallbackSig = `
+      <div class="cv-signature-section" style="margin-top: 35px; padding-top: 20px; display: flex; justify-content: flex-end; page-break-inside: avoid !important; break-inside: avoid !important; width: 100%;">
+        <div style="text-align: center; min-width: 190px; display: inline-block;">
+          <div style="height: 38px;"></div>
+          <div style="border-top: 1.5px solid #334155; width: 180px; margin: 0 auto 5px auto;"></div>
+          <div style="font-size: 13px; font-weight: 700; color: #1e293b; letter-spacing: 0.3px;">Authorized Signature</div>
+          <div style="font-size: 10.5px; color: #64748b; margin-top: 2px;">স্বাক্ষর ও তারিখ / Signature & Date</div>
+        </div>
+      </div>
+    `;
+
+    if (/(<div[^>]*class=['"][^'"]*(?:main-content|content-right|right-column|col-right|main_column|content-main)[^'"]*['"][^>]*>[\s\S]*?)(<\/div>\s*<\/div>)/i.test(processedHtml)) {
+      processedHtml = processedHtml.replace(/(<div[^>]*class=['"][^'"]*(?:main-content|content-right|right-column|col-right|main_column|content-main)[^'"]*['"][^>]*>[\s\S]*?)(<\/div>\s*<\/div>)/i, `$1\n${fallbackSig}\n$2`);
+    } else if (/(<\/div>\s*<\/body>)/i.test(processedHtml)) {
+      processedHtml = processedHtml.replace(/(<\/div>\s*<\/body>)/i, `${fallbackSig}\n$1`);
+    } else if (processedHtml.includes("</body>")) {
+      processedHtml = processedHtml.replace("</body>", `${fallbackSig}\n</body>`);
+    }
   }
-  return `${printStyles}${rawHtml}`;
+
+  if (processedHtml.includes("</head>")) {
+    return processedHtml.replace("</head>", `${printStyles}</head>`);
+  }
+  return `${printStyles}${processedHtml}`;
 }
 
 /**

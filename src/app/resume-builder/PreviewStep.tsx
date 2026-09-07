@@ -100,6 +100,7 @@ export default function PreviewStep({
         website: d.personal.website,
         additional_info: d.personal.additional_info,
         zip_code: d.personal.zip_code,
+        signature_url: d.personal.signature_url || "",
       },
       summary: d.resume_objective?.description || "",
       experience: (d.work_experience || []).map((w) => ({

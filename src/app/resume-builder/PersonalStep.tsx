@@ -217,6 +217,40 @@ export default function PersonalStep({
     e.target.value = "";
   };
 
+  const sigInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingSig, setUploadingSig] = useState(false);
+
+  const handleSigChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error(isBn ? "শুধুমাত্র ছবি ফাইল অনুমোদিত" : "Only image files allowed");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(isBn ? "সর্বোচ্চ ৫MB সাইজ অনুমোদিত" : "Max 5MB allowed");
+      return;
+    }
+    setUploadingSig(true);
+    try {
+      const compressed = await compressToWebp(file);
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        const dataUrl = uploadEvent.target?.result as string;
+        if (dataUrl) {
+          updatePersonal({ signature_url: dataUrl });
+          toast.success(isBn ? "স্বাক্ষর যুক্ত হয়েছে!" : "Signature added successfully!");
+        }
+      };
+      reader.readAsDataURL(compressed);
+    } catch {
+      toast.error(isBn ? "স্বাক্ষর প্রক্রিয়াকরণ ব্যর্থ" : "Signature processing failed");
+    } finally {
+      setUploadingSig(false);
+    }
+    e.target.value = "";
+  };
+
   const photoDisplay = p.photo_url
     ? (p.photo_url.startsWith("http") || p.photo_url.startsWith("blob:") || p.photo_url.startsWith("data:")) ? p.photo_url : getStorageUrl(p.photo_url)
     : null;
@@ -409,6 +443,76 @@ export default function PersonalStep({
                   <div className="space-y-1">
                     <Label className="text-xs">Website / Blog</Label>
                     <Input value={p.website} onChange={(e) => set("website", e.target.value)} placeholder="https://mysite.com" className="h-8 text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Digital Signature Section */}
+              <div className="space-y-3 pt-3 border-t">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
+                      {isBn ? "ডিজিটাল স্বাক্ষর (Signature) - ঐচ্ছিক" : "Digital Signature (Optional)"}
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {isBn 
+                        ? "আপনার স্বাক্ষরের ছবি থাকলে আপলোড করুন। আপলোড না করলেও প্রিন্ট করার পর হাতে স্বাক্ষর করার জন্য সিভির নিচে নির্দিষ্ট জায়গা থাকবে।"
+                        : "Upload a signature image or leave blank to sign by hand on the printed CV."}
+                    </p>
+                  </div>
+                  {p.signature_url && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive h-7 text-xs hover:bg-destructive/10"
+                      onClick={() => updatePersonal({ signature_url: "" })}
+                    >
+                      {isBn ? "স্বাক্ষর মুছুন" : "Remove Signature"}
+                    </Button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-4 p-3 border rounded-xl bg-card">
+                  {p.signature_url ? (
+                    <div className="h-16 px-4 py-2 border rounded-lg bg-background flex items-center justify-center border-dashed border-primary/40">
+                      <img
+                        src={p.signature_url}
+                        alt="Signature"
+                        className="max-h-12 max-w-[160px] object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-16 w-36 border border-dashed rounded-lg bg-muted/40 flex flex-col items-center justify-center text-[11px] text-muted-foreground text-center p-1">
+                      <span>{isBn ? "কোনো স্বাক্ষর নেই" : "No Signature"}</span>
+                      <span className="text-[9px] text-muted-foreground/70">{isBn ? "(হাতে স্বাক্ষর হবে)" : "(Will sign by hand)"}</span>
+                    </div>
+                  )}
+
+                  <div>
+                    <input
+                      ref={sigInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleSigChange}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={uploadingSig}
+                      onClick={() => sigInputRef.current?.click()}
+                      className="gap-2 text-xs"
+                    >
+                      {uploadingSig ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                      {p.signature_url
+                        ? (isBn ? "স্বাক্ষর পরিবর্তন করুন" : "Change Signature")
+                        : (isBn ? "স্বাক্ষরের ছবি আপলোড" : "Upload Signature Image")}
+                    </Button>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      PNG, JPG, WebP (Max 5MB)
+                    </p>
                   </div>
                 </div>
               </div>
