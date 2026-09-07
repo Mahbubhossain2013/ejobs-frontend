@@ -106,12 +106,25 @@ export function preparePrintableHtml(rawHtml: string): string {
       </div>
     `;
 
-    if (/(<div[^>]*class=['"][^'"]*(?:main-content|content-right|right-column|col-right|main_column|content-main|right-panel|main-panel|right-col|main)[^'"]*['"][^>]*>[\s\S]*?)(<\/div>\s*<\/div>)/i.test(processedHtml)) {
-      processedHtml = processedHtml.replace(/(<div[^>]*class=['"][^'"]*(?:main-content|content-right|right-column|col-right|main_column|content-main|right-panel|main-panel|right-col|main)[^'"]*['"][^>]*>[\s\S]*?)(<\/div>\s*<\/div>)/i, `$1\n${fallbackSig}\n$2`);
-    } else if (/(<\/div>\s*<\/body>)/i.test(processedHtml)) {
-      processedHtml = processedHtml.replace(/(<\/div>\s*<\/body>)/i, `${fallbackSig}\n$1`);
+    const closingMatch = processedHtml.match(/((?:\s*<\/div>)+\s*<\/body>)/i);
+    if (closingMatch && closingMatch.index !== undefined) {
+      const closingSeq = closingMatch[0];
+      const divMatches = closingSeq.match(/<\/div>/gi);
+      const divCount = divMatches ? divMatches.length : 0;
+      let replacedSeq = "";
+      if (divCount >= 2) {
+        replacedSeq = closingSeq.replace(/<\/div>/i, `${fallbackSig}\n</div>`);
+      } else {
+        replacedSeq = `${fallbackSig}\n${closingSeq}`;
+      }
+      processedHtml =
+        processedHtml.slice(0, closingMatch.index) +
+        replacedSeq +
+        processedHtml.slice(closingMatch.index + closingSeq.length);
     } else if (processedHtml.includes("</body>")) {
       processedHtml = processedHtml.replace("</body>", `${fallbackSig}\n</body>`);
+    } else {
+      processedHtml = `${processedHtml}\n${fallbackSig}`;
     }
   }
 
