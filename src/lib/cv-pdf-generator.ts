@@ -22,7 +22,6 @@ export function preparePrintableHtml(rawHtml: string): string {
           margin: 0 !important;
           padding: 0 !important;
           width: 210mm !important;
-          background: transparent !important;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
@@ -31,6 +30,17 @@ export function preparePrintableHtml(rawHtml: string): string {
           min-height: 297mm !important;
           margin: 0 auto !important;
           box-shadow: none !important;
+          display: flex !important;
+          align-items: stretch !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        .left-col, .sidebar, .side, .col-left, .left-panel, aside,
+        .right-col, .main, .main-content, .col-right,
+        .body-wrap, .body-split {
+          align-self: stretch !important;
+          min-height: 100% !important;
+          box-sizing: border-box !important;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
@@ -155,6 +165,21 @@ export function printCvHtml(html: string) {
 
   const triggerPrint = () => {
     try {
+      const pageEl = printWindow.document.querySelector<HTMLElement>(".cv-page");
+      if (pageEl) {
+        const pxPerMm = (pageEl.offsetWidth || 794) / 210;
+        const a4HeightPx = 297 * pxPerMm;
+        const totalPages = Math.max(1, Math.ceil(pageEl.scrollHeight / a4HeightPx));
+        pageEl.style.minHeight = `${totalPages * 297}mm`;
+
+        const sidebars = printWindow.document.querySelectorAll<HTMLElement>(
+          ".left-col, .sidebar, .side, .col-left, .left-panel, aside"
+        );
+        sidebars.forEach((s) => {
+          s.style.minHeight = `${totalPages * 297}mm`;
+          s.style.alignSelf = "stretch";
+        });
+      }
       printWindow.focus();
       printWindow.print();
     } catch {
@@ -375,13 +400,70 @@ export async function downloadCvAsPdf(
       (iframeDoc.querySelector(".cv-page") as HTMLElement) ||
       (iframeDoc.body as HTMLElement);
 
-    const naturalHeight = Math.max(
+    // Enforce full A4 page multiples (297mm = ~1122.52px at 96 DPI)
+    // so columns (sidebar/left-col) stretch 100% to the bottom of the final page!
+    const A4_HEIGHT_PX = 1122.52;
+    const rawHeight = Math.max(
       target.scrollHeight,
       target.offsetHeight,
       iframeDoc.body.scrollHeight,
       1123
     );
-    iframe.style.height = `${naturalHeight + 60}px`;
+    const totalPages = Math.max(1, Math.ceil(rawHeight / A4_HEIGHT_PX));
+    const fullCanvasHeight = Math.round(totalPages * A4_HEIGHT_PX);
+
+    target.style.minHeight = `${fullCanvasHeight}px`;
+    target.style.height = `${fullCanvasHeight}px`;
+    target.style.boxSizing = "border-box";
+    iframe.style.height = `${fullCanvasHeight + 60}px`;
+
+    // Ensure all intermediate column wrappers stretch to 100%
+    const wrappers = iframeDoc.querySelectorAll<HTMLElement>(
+      ".body-wrap, .body-split, .columns-wrap, .main-wrap, .layout-wrap"
+    );
+    wrappers.forEach((wrap) => {
+      wrap.style.flex = "1";
+      wrap.style.minHeight = "100%";
+      wrap.style.alignSelf = "stretch";
+    });
+
+    // Ensure all multi-column children stretch to fullCanvasHeight
+    const targetRect = target.getBoundingClientRect();
+    const columns = iframeDoc.querySelectorAll<HTMLElement>(
+      ".left-col, .right-col, .sidebar, .side, .main, .main-content, .col-left, .col-right, aside, .left-panel"
+    );
+    columns.forEach((col) => {
+      const colRect = col.getBoundingClientRect();
+      const topOffset = Math.max(0, colRect.top - targetRect.top);
+      const targetColHeight = Math.max(0, fullCanvasHeight - topOffset);
+      col.style.minHeight = `${targetColHeight}px`;
+      col.style.height = "100%";
+      col.style.alignSelf = "stretch";
+      col.style.boxSizing = "border-box";
+    });
+
+    // Universal Fallback: If a left sidebar exists with a background color,
+    // ensure target (.cv-page) background covers full canvas with sidebar gradient
+    const leftSidebar = iframeDoc.querySelector<HTMLElement>(
+      ".left-col, .sidebar, .side, .col-left, .left-panel, aside"
+    );
+    if (leftSidebar && iframe.contentWindow) {
+      try {
+        const computed = iframe.contentWindow.getComputedStyle(leftSidebar);
+        const bg = computed.backgroundColor;
+        if (bg && bg !== "transparent" && bg !== "rgba(0, 0, 0, 0)") {
+          const leftWidth = leftSidebar.offsetWidth;
+          const totalWidth = target.offsetWidth || 794;
+          const pct = Math.round((leftWidth / totalWidth) * 100);
+          if (pct >= 20 && pct <= 50) {
+            const currentBg = iframe.contentWindow.getComputedStyle(target).backgroundImage;
+            if (!currentBg || currentBg === "none") {
+              target.style.background = `linear-gradient(to right, ${bg} ${pct}%, #ffffff ${pct}%)`;
+            }
+          }
+        }
+      } catch {}
+    }
 
     const canvas = await html2canvas(target, {
       scale: 2,
@@ -390,7 +472,8 @@ export async function downloadCvAsPdf(
       backgroundColor: null,
       logging: false,
       windowWidth: 794,
-      windowHeight: naturalHeight,
+      windowHeight: fullCanvasHeight,
+      height: fullCanvasHeight,
     });
 
     const imgData = canvas.toDataURL("image/jpeg", 0.95);
