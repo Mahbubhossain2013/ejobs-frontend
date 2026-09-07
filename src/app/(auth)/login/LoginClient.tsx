@@ -93,6 +93,15 @@ function LoginClientInner() {
   }, [login.data, isBn]);
 
   useEffect(() => {
+    const err = searchParams.get("error");
+    if (err === "social_auth_failed") {
+      toast.error(isBn ? "গুগল লগইন ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।" : "Social login failed. Please try again.");
+    } else if (err === "no_token") {
+      toast.error(isBn ? "প্রমাণীকরণ ব্যর্থ হয়েছে।" : "Authentication failed.");
+    }
+  }, [searchParams, isBn]);
+
+  useEffect(() => {
     if (countdown <= 0) return; const t = setTimeout(() => setCountdown((c) => c - 1), 1000); return () => clearTimeout(t);
   }, [countdown]);
 

@@ -53,8 +53,9 @@ export function useAuth() {
         router.push("/dashboard");
       }
     },
-    onError: (error: { response?: { data?: { message?: string } } }) => {
-      toast.error(error.response?.data?.message || "Login failed");
+    onError: (error: { response?: { status?: number; data?: { message?: string } } }) => {
+      const msg = error.response?.data?.message || (error.response?.status === 401 ? "ভুল ইমেইল বা পাসওয়ার্ড" : "Login failed");
+      toast.error(msg);
     },
   });
 
