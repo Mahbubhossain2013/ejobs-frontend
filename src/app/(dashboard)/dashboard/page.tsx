@@ -29,28 +29,59 @@ interface DashboardData {
 }
 
 export default function CandidateDashboardPage() {
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, token } = useAuth();
   const { language, settings } = useThemeStore();
   const isBn = language === "bn";
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // If auth state is still loading from storage, wait
+    if (authLoading) return;
+
+    // If unauthenticated, don't attempt to load protected dashboard data
+    if (!isAuthenticated && !token) {
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    setLoading(true);
+
     api
       .get("/candidate/dashboard")
       .then((res) => {
+        if (!isMounted) return;
         const d = res.data;
         setData({
           applied_jobs_count: d.stats?.applied ?? d.applications?.length ?? 0,
-          saved_jobs_count: d.user?.profile?.saved_jobs_count ?? 0,
+          saved_jobs_count: d.stats?.saved ?? d.saved_jobs_count ?? d.user?.profile?.saved_jobs_count ?? 0,
           profile_views: d.user?.profile?.profile_views ?? 0,
           match_score: Math.round(d.user?.profile?.match_score ?? 0),
           wallet_balance: d.user?.profile?.wallet_balance ?? 0,
         });
       })
-      .catch((err) => toast.error(err?.response?.data?.message || "Failed to load dashboard data"))
-      .finally(() => setLoading(false));
-  }, []);
+      .catch((err) => {
+        if (!isMounted) return;
+        // Don't toast if request is unauthorized (handled by auth store / interceptor redirect)
+        if (err?.response?.status === 401 || err?.response?.status === 419) {
+          return;
+        }
+        toast.error(
+          err?.response?.data?.message ||
+            (isBn ? "ড্যাশবোর্ড ডেটা লোড করতে ব্যর্থ হয়েছে" : "Failed to load dashboard data")
+        );
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authLoading, isAuthenticated, token, isBn]);
 
   const stats = [
     {
