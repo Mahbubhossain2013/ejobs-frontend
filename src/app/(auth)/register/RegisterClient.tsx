@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useThemeStore } from "@/store/theme-store";
 import { authService } from "@/services/auth.service";
+import { getApiErrorMessage } from "@/lib/api-client";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,8 +82,8 @@ function RegisterClientInner() {
       setRegisteredRole(userRole);
       toast.success(isBn ? "নিবন্ধন সফল! এখন ইমেইল যাচাই করুন।" : "Registration successful! Please verify your email.");
     } catch (error: unknown) {
-      const msg = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      toast.error(msg || (isBn ? "নিবন্ধন ব্যর্থ" : "Registration failed"));
+      const msg = getApiErrorMessage(error, isBn ? "নিবন্ধন ব্যর্থ" : "Registration failed");
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -113,8 +114,8 @@ function RegisterClientInner() {
         toast.success(isBn ? "নিবন্ধন সফল! এখন ইমেইল যাচাই করুন।" : "Registration successful! Please verify your email.");
       }
     } catch (error: unknown) {
-      const msg = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      toast.error(msg || (isBn ? "নিবন্ধন ব্যর্থ" : "Registration failed"));
+      const msg = getApiErrorMessage(error, isBn ? "নিবন্ধন ব্যর্থ" : "Registration failed");
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }

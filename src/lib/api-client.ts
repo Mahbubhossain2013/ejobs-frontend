@@ -26,7 +26,7 @@ async function ensureCsrfCookie() {
   if (csrfFetched) return;
   if (!csrfFetchPromise) {
     csrfFetchPromise = axios
-      .get(isBrowser ? "/sanctum/csrf-cookie" : `${API_BASE}/sanctum/csrf-cookie`, {
+      .get(`${API_BASE}/sanctum/csrf-cookie`, {
         withCredentials: true,
       })
       .then(() => {
