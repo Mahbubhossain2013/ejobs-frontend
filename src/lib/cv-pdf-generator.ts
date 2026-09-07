@@ -71,8 +71,8 @@ export function preparePrintableHtml(rawHtml: string): string {
         display: flex !important;
         justify-content: flex-end !important;
         width: 100% !important;
-        margin-top: 35px !important;
-        padding-top: 15px !important;
+        margin-top: 24px !important;
+        padding-top: 8px !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
       }
@@ -96,9 +96,9 @@ export function preparePrintableHtml(rawHtml: string): string {
   // If HTML doesn't have signature block yet, inject a fallback signature block
   if (!processedHtml.includes("cv-signature-section") && !processedHtml.includes("signature-box")) {
     const fallbackSig = `
-      <div class="cv-signature-section" style="margin-top: 35px; padding-top: 20px; display: flex; justify-content: flex-end; page-break-inside: avoid !important; break-inside: avoid !important; width: 100%;">
+      <div class="cv-signature-section" style="margin-top: 24px; padding-top: 8px; display: flex; justify-content: flex-end; page-break-inside: avoid !important; break-inside: avoid !important; width: 100%;">
         <div style="text-align: center; min-width: 190px; display: inline-block;">
-          <div style="height: 38px;"></div>
+          <div style="height: 35px;"></div>
           <div style="border-top: 1.5px solid #334155; width: 180px; margin: 0 auto 5px auto;"></div>
           <div style="font-size: 13px; font-weight: 700; color: #1e293b; letter-spacing: 0.3px;">Authorized Signature</div>
           <div style="font-size: 10.5px; color: #64748b; margin-top: 2px;">স্বাক্ষর ও তারিখ / Signature & Date</div>
@@ -106,8 +106,8 @@ export function preparePrintableHtml(rawHtml: string): string {
       </div>
     `;
 
-    if (/(<div[^>]*class=['"][^'"]*(?:main-content|content-right|right-column|col-right|main_column|content-main)[^'"]*['"][^>]*>[\s\S]*?)(<\/div>\s*<\/div>)/i.test(processedHtml)) {
-      processedHtml = processedHtml.replace(/(<div[^>]*class=['"][^'"]*(?:main-content|content-right|right-column|col-right|main_column|content-main)[^'"]*['"][^>]*>[\s\S]*?)(<\/div>\s*<\/div>)/i, `$1\n${fallbackSig}\n$2`);
+    if (/(<div[^>]*class=['"][^'"]*(?:main-content|content-right|right-column|col-right|main_column|content-main|right-panel|main-panel|right-col|main)[^'"]*['"][^>]*>[\s\S]*?)(<\/div>\s*<\/div>)/i.test(processedHtml)) {
+      processedHtml = processedHtml.replace(/(<div[^>]*class=['"][^'"]*(?:main-content|content-right|right-column|col-right|main_column|content-main|right-panel|main-panel|right-col|main)[^'"]*['"][^>]*>[\s\S]*?)(<\/div>\s*<\/div>)/i, `$1\n${fallbackSig}\n$2`);
     } else if (/(<\/div>\s*<\/body>)/i.test(processedHtml)) {
       processedHtml = processedHtml.replace(/(<\/div>\s*<\/body>)/i, `${fallbackSig}\n$1`);
     } else if (processedHtml.includes("</body>")) {
