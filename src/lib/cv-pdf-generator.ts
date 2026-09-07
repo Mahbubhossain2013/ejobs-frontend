@@ -76,6 +76,18 @@ export function preparePrintableHtml(rawHtml: string): string {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
       }
+
+      /* Photo & Image print/canvas integrity */
+      img {
+        max-width: 100% !important;
+        image-rendering: -webkit-optimize-contrast !important;
+      }
+      .avatar img, .photo-frame img, .photo-box img, .profile-photo img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        display: block !important;
+      }
     </style>
   `;
 
@@ -161,8 +173,106 @@ export function printCvHtml(html: string) {
 }
 
 /**
+ * Converts any image source (remote URL, relative URL, blob URL, or WebP data URL)
+ * into a pure, same-origin Base64 PNG/JPEG data URL so html2canvas can paint it
+ * directly without CORS blocks, network delays, or WebP compatibility issues.
+ */
+async function toBase64PngDataUrl(src: string): Promise<string> {
+  if (!src) return src;
+
+  // 1. Standard PNG / JPEG data URLs are already safe and canvas-compatible
+  if (src.startsWith("data:image/png") || src.startsWith("data:image/jpeg")) {
+    return src;
+  }
+
+  // 2. If it's a data URL of other types (e.g. data:image/webp)
+  if (src.startsWith("data:")) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth || img.width || 300;
+          canvas.height = img.naturalHeight || img.height || 300;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            const png = canvas.toDataURL("image/png");
+            if (png && png.length > 50) {
+              resolve(png);
+              return;
+            }
+          }
+        } catch {}
+        resolve(src);
+      };
+      img.onerror = () => resolve(src);
+      img.src = src;
+    });
+  }
+
+  // 3. Remote or relative URLs: try direct fetch, then proxy route
+  const candidateUrls: string[] = [src];
+  if (src.startsWith("http://") || src.startsWith("https://")) {
+    candidateUrls.push(`/cv/image-proxy?url=${encodeURIComponent(src)}`);
+  } else if (src.startsWith("/storage/")) {
+    candidateUrls.push(src);
+    if (typeof window !== "undefined") {
+      candidateUrls.push(`/cv/image-proxy?url=${encodeURIComponent(window.location.origin + src)}`);
+    }
+  }
+
+  for (const url of candidateUrls) {
+    try {
+      const res = await fetch(url, { mode: "cors", cache: "force-cache" });
+      if (res.ok) {
+        const blob = await res.blob();
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve((reader.result as string) || "");
+          reader.onerror = () => resolve("");
+          reader.readAsDataURL(blob);
+        });
+
+        if (base64) {
+          if (base64.startsWith("data:image/webp")) {
+            return await toBase64PngDataUrl(base64);
+          }
+          return base64;
+        }
+      }
+    } catch {
+      // try next candidate
+    }
+  }
+
+  // 4. Fallback: try loading into Image element directly and drawing to canvas
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth || 300;
+        canvas.height = img.naturalHeight || 300;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+          return;
+        }
+      } catch {}
+      resolve(src);
+    };
+    img.onerror = () => resolve(src);
+    img.src = src;
+  });
+}
+
+/**
  * Generates and downloads a pixel-perfect, high-DPI A4 PDF directly from HTML.
- * Uses dynamic imports for html2canvas and jsPDF to ensure no top-level module TDZ conflicts.
+ * Converts all images to inline Base64 data URLs before rendering to guarantee
+ * photos, signatures, and logos are never omitted by CORS or browser sandbox rules.
  */
 export async function downloadCvAsPdf(
   html: string,
@@ -180,16 +290,16 @@ export async function downloadCvAsPdf(
 
   const printableHtml = preparePrintableHtml(html);
 
-  // Create an off-screen iframe to render the HTML with exact A4 dimensions
+  // Create an iframe to render the HTML with exact A4 dimensions
   const iframe = document.createElement("iframe");
   iframe.style.position = "fixed";
-  iframe.style.left = "-9999px";
+  iframe.style.left = "0";
   iframe.style.top = "0";
   iframe.style.width = "794px"; // 210mm at 96 DPI
   iframe.style.height = "1123px"; // 297mm at 96 DPI
   iframe.style.border = "none";
-  iframe.style.opacity = "0";
-  iframe.style.zIndex = "-1000";
+  iframe.style.opacity = "0.01";
+  iframe.style.zIndex = "-99999";
   iframe.style.pointerEvents = "none";
 
   document.body.appendChild(iframe);
@@ -204,20 +314,42 @@ export async function downloadCvAsPdf(
     iframeDoc.write(printableHtml);
     iframeDoc.close();
 
-    // Wait for all images in the iframe to fully load
-    const images = Array.from(iframeDoc.images);
+    // 1. Process all <img> elements inside iframeDoc to inline base64 PNGs
+    const imgElements = Array.from(iframeDoc.querySelectorAll("img"));
     await Promise.all(
-      images.map((img) => {
-        if (img.complete) return Promise.resolve();
+      imgElements.map(async (img) => {
+        const src = img.getAttribute("src") || img.src;
+        if (!src) return;
+
+        try {
+          const base64 = await toBase64PngDataUrl(src);
+          if (base64 && base64.startsWith("data:image/")) {
+            img.src = base64;
+            img.removeAttribute("crossorigin");
+          }
+        } catch {
+          // keep original
+        }
+      })
+    );
+
+    // 2. Wait for all images in the iframe to fully decode & report naturalWidth > 0
+    await Promise.all(
+      Array.from(iframeDoc.images).map((img) => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
         return new Promise<void>((resolve) => {
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
+          if (typeof img.decode === "function") {
+            img.decode().then(resolve).catch(() => resolve());
+          } else {
+            img.onload = () => resolve();
+            img.onerror = () => resolve();
+          }
           setTimeout(() => resolve(), 3000);
         });
       })
     );
 
-    // Wait for custom fonts to load
+    // 3. Wait for custom fonts to load
     if (iframeDoc.fonts && iframeDoc.fonts.ready) {
       try {
         await iframeDoc.fonts.ready;
@@ -241,7 +373,7 @@ export async function downloadCvAsPdf(
     const canvas = await html2canvas(target, {
       scale: 2,
       useCORS: true,
-      allowTaint: true,
+      allowTaint: false,
       backgroundColor: null,
       logging: false,
       windowWidth: 794,
