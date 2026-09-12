@@ -55,6 +55,13 @@ export default function PreviewStep({
   );
   const currentTemplate = templates.find((t) => t.slug === selectedSlug);
 
+  const [isEditing, setIsEditing] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined" && !!localStorage.getItem("editing_resume_uuid")) {
+      setIsEditing(true);
+    }
+  }, []);
+
   // Use ref so that buildPayload is always current without causing useEffect re-runs
   const dataRef = useRef(data);
   useEffect(() => { dataRef.current = data; }, [data]);
@@ -269,24 +276,35 @@ export default function PreviewStep({
 
     // Auto-save so printing guarantees the resume is recorded in dashboard history
     try {
-      const activeUuid = createdResumeUuid || `cv-${Date.now()}`;
+      const editingUuid = typeof window !== "undefined" ? localStorage.getItem("editing_resume_uuid") : null;
+      const activeUuid = createdResumeUuid || editingUuid || `cv-${Date.now()}`;
       if (!createdResumeUuid) setCreatedResumeUuid(activeUuid);
       saveToLocalHistory(activeUuid);
 
       const hasAuth = typeof window !== "undefined" && !!JSON.parse(localStorage.getItem("auth-storage") || "{}")?.state?.token;
       if (hasAuth && !createdResumeUuid) {
         const fullSnapshot = buildPayload();
-        api.post("/cv/create", {
-          template_slug: selectedSlug,
-          data_snapshot: fullSnapshot,
-          title: `${fullSnapshot.personal?.full_name || "My"} CV`,
-        }).then((res) => {
-          const apiUuid = res.data?.data?.uuid || res.data?.uuid;
-          if (apiUuid) {
-            setCreatedResumeUuid(apiUuid);
-            saveToLocalHistory(apiUuid, undefined, res.data?.data?.id);
-          }
-        }).catch(() => {});
+        const editingTitle = typeof window !== "undefined" ? localStorage.getItem("editing_resume_title") : null;
+        const cvTitle = editingTitle || `${fullSnapshot.personal?.full_name || "My"} CV`;
+        if (editingUuid) {
+          api.put(`/candidate/cv/resumes/${editingUuid}`, {
+            template_slug: selectedSlug,
+            data_snapshot: fullSnapshot,
+            title: cvTitle,
+          }).catch(() => {});
+        } else {
+          api.post("/cv/create", {
+            template_slug: selectedSlug,
+            data_snapshot: fullSnapshot,
+            title: cvTitle,
+          }).then((res) => {
+            const apiUuid = res.data?.data?.uuid || res.data?.uuid;
+            if (apiUuid) {
+              setCreatedResumeUuid(apiUuid);
+              saveToLocalHistory(apiUuid, undefined, res.data?.data?.id);
+            }
+          }).catch(() => {});
+        }
       }
     } catch {
       // ignore
@@ -301,7 +319,8 @@ export default function PreviewStep({
       return;
     }
 
-    const activeUuid = createdResumeUuid || `cv-${Date.now()}`;
+    const editingUuid = typeof window !== "undefined" ? localStorage.getItem("editing_resume_uuid") : null;
+    const activeUuid = createdResumeUuid || editingUuid || `cv-${Date.now()}`;
     if (!createdResumeUuid) setCreatedResumeUuid(activeUuid);
     saveToLocalHistory(activeUuid);
 
@@ -309,22 +328,32 @@ export default function PreviewStep({
     const hasAuth = isAuthenticated || (typeof window !== "undefined" && !!JSON.parse(localStorage.getItem("auth-storage") || "{}")?.state?.token);
     if (hasAuth && !createdResumeUuid) {
       const fullSnapshot = buildPayload();
-      api.post("/cv/create", {
-        template_slug: selectedSlug,
-        title: `${fullSnapshot.personal?.full_name || "My Resume"} - ${selectedSlug}`,
-        data_snapshot: fullSnapshot,
-      }).then((res) => {
-        const uuid = res.data?.data?.uuid || res.data?.uuid;
-        if (uuid) {
-          setCreatedResumeUuid(uuid);
-          saveToLocalHistory(uuid, undefined, res.data?.data?.id);
-        }
-      }).catch(() => {});
+      const editingTitle = typeof window !== "undefined" ? localStorage.getItem("editing_resume_title") : null;
+      const cvTitle = editingTitle || `${fullSnapshot.personal?.full_name || "My Resume"} - ${selectedSlug}`;
+      if (editingUuid) {
+        api.put(`/candidate/cv/resumes/${editingUuid}`, {
+          template_slug: selectedSlug,
+          title: cvTitle,
+          data_snapshot: fullSnapshot,
+        }).catch(() => {});
+      } else {
+        api.post("/cv/create", {
+          template_slug: selectedSlug,
+          title: cvTitle,
+          data_snapshot: fullSnapshot,
+        }).then((res) => {
+          const uuid = res.data?.data?.uuid || res.data?.uuid;
+          if (uuid) {
+            setCreatedResumeUuid(uuid);
+            saveToLocalHistory(uuid, undefined, res.data?.data?.id);
+          }
+        }).catch(() => {});
+      }
     }
 
     setDownloadingPdf(true);
     const candidateName =
-      `${data.personal.first_name || ""} ${data.personal.last_name || ""}`.trim() ||
+      `${data.personal.first_name || ""}_${data.personal.last_name || ""}`.trim() ||
       data.personal.full_name ||
       "My_CV";
 
@@ -364,13 +393,20 @@ export default function PreviewStep({
     })();
 
     const fullSnapshot = buildPayload();
-    const cvTitle = `${fullSnapshot.personal?.full_name || "My"} CV`;
+    const editingUuid = typeof window !== "undefined" ? localStorage.getItem("editing_resume_uuid") : null;
+    const editingTitle = typeof window !== "undefined" ? localStorage.getItem("editing_resume_title") : null;
+    const cvTitle = editingTitle || `${fullSnapshot.personal?.full_name || "My"} CV`;
 
     if (!hasAuth) {
       // Guest User can directly print their CV & save locally
-      const localUuid = createdResumeUuid || `guest-${Date.now()}`;
+      const localUuid = editingUuid || createdResumeUuid || `guest-${Date.now()}`;
       setCreatedResumeUuid(localUuid);
       saveToLocalHistory(localUuid, cvTitle);
+      if (editingUuid) {
+        localStorage.removeItem("editing_resume_uuid");
+        localStorage.removeItem("editing_resume_title");
+        setIsEditing(false);
+      }
       setSuccessModalOpen(true);
       toast.success(
         isBn ? "সিভি প্রস্তুত ও সংরক্ষিত হয়েছে! নিচে PDF ডাউনলোড বা প্রিন্ট অপশন নির্বাচন করুন।" : "CV is ready and saved! Choose Print or Download below."
@@ -380,24 +416,61 @@ export default function PreviewStep({
 
     setSubmitting(true);
     try {
-      const res = await api.post("/cv/create", {
-        template_slug: selectedSlug,
-        data_snapshot: fullSnapshot,
-        title: cvTitle,
-      });
+      let uuid: string = "";
+      let id: number | undefined;
 
-      const uuid = res.data?.data?.uuid || res.data?.uuid || `cv-${Date.now()}`;
-      const id = res.data?.data?.id || res.data?.id;
-      setCreatedResumeUuid(uuid);
-      saveToLocalHistory(uuid, cvTitle, id);
-      setSuccessModalOpen(true);
-      toast.success(
-        isBn ? "🎉 সিভি সফলভাবে তৈরি ও ড্যাশবোর্ডে সংরক্ষিত হয়েছে!" : "CV created and saved to dashboard!"
-      );
+      if (editingUuid) {
+        try {
+          const res = await api.put(`/candidate/cv/resumes/${editingUuid}`, {
+            template_slug: selectedSlug,
+            data_snapshot: fullSnapshot,
+            title: cvTitle,
+          });
+          uuid = res.data?.data?.uuid || res.data?.uuid || editingUuid;
+          id = res.data?.data?.id || res.data?.id;
+        } catch {
+          const res = await api.post("/cv/create", {
+            template_slug: selectedSlug,
+            data_snapshot: fullSnapshot,
+            title: cvTitle,
+          });
+          uuid = res.data?.data?.uuid || res.data?.uuid || editingUuid;
+          id = res.data?.data?.id || res.data?.id;
+        }
+        localStorage.removeItem("editing_resume_uuid");
+        localStorage.removeItem("editing_resume_title");
+        setIsEditing(false);
+        setCreatedResumeUuid(uuid);
+        saveToLocalHistory(uuid, cvTitle, id);
+        setSuccessModalOpen(true);
+        toast.success(
+          isBn ? "🎉 সিভি সফলভাবে আপডেট ও সংরক্ষিত হয়েছে!" : "🎉 CV updated and saved successfully!"
+        );
+      } else {
+        const res = await api.post("/cv/create", {
+          template_slug: selectedSlug,
+          data_snapshot: fullSnapshot,
+          title: cvTitle,
+        });
+
+        uuid = res.data?.data?.uuid || res.data?.uuid || `cv-${Date.now()}`;
+        id = res.data?.data?.id || res.data?.id;
+        setCreatedResumeUuid(uuid);
+        saveToLocalHistory(uuid, cvTitle, id);
+        setSuccessModalOpen(true);
+        toast.success(
+          isBn ? "🎉 সিভি সফলভাবে তৈরি ও ড্যাশবোর্ডে সংরক্ষিত হয়েছে!" : "CV created and saved to dashboard!"
+        );
+      }
     } catch (e: any) {
-      const fallbackUuid = createdResumeUuid || `cv-${Date.now()}`;
+      const fallbackUuid = editingUuid || createdResumeUuid || `cv-${Date.now()}`;
       setCreatedResumeUuid(fallbackUuid);
       saveToLocalHistory(fallbackUuid, cvTitle);
+      if (editingUuid) {
+        localStorage.removeItem("editing_resume_uuid");
+        localStorage.removeItem("editing_resume_title");
+        setIsEditing(false);
+      }
       setSuccessModalOpen(true);
       toast.info(
         isBn ? "সিভি প্রস্তুত! নিচে PDF ডাউনলোড বা প্রিন্ট অপশন নির্বাচন করুন।" : "CV is ready! Choose Print or Download below."
@@ -418,7 +491,13 @@ export default function PreviewStep({
             </Badge>
           </div>
           <h2 className="text-2xl font-black tracking-tight">
-            {isBn ? "আপনার সিভির প্রিভিউ ও ফাইনাল সাবমিশন" : "Review & Submit Your CV"}
+            {isEditing
+              ? isBn
+                ? "আপনার সিভির প্রিভিউ ও আপডেট"
+                : "Review & Update Your CV"
+              : isBn
+              ? "আপনার সিভির প্রিভিউ ও ফাইনাল সাবমিশন"
+              : "Review & Submit Your CV"}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
             {isBn
@@ -464,7 +543,13 @@ export default function PreviewStep({
             ) : (
               <FileCheck className="w-4 h-4" />
             )}
-            {isBn ? "সিভি সাবমিট করুন" : "Submit CV"}
+            {isEditing
+              ? isBn
+                ? "সিভি আপডেট করুন"
+                : "Update CV"
+              : isBn
+              ? "সিভি সাবমিট করুন"
+              : "Submit CV"}
           </Button>
         </div>
       </div>
@@ -575,7 +660,13 @@ export default function PreviewStep({
             ) : (
               <Check className="w-5 h-5" />
             )}
-            {isBn ? "সিভি সাবমিট করুন" : "Submit CV"}
+            {isEditing
+              ? isBn
+                ? "সিভি আপডেট করুন"
+                : "Update CV"
+              : isBn
+              ? "সিভি সাবমিট করুন"
+              : "Submit CV"}
           </Button>
         </div>
       </div>
@@ -587,7 +678,13 @@ export default function PreviewStep({
             ✓
           </div>
           <DialogTitle className="text-2xl font-black text-foreground">
-            {isBn ? "🎉 আপনার সিভি সম্পন্ন হয়েছে!" : "🎉 CV Created Successfully!"}
+            {isEditing
+              ? isBn
+                ? "🎉 আপনার সিভি সফলভাবে আপডেট হয়েছে!"
+                : "🎉 CV Updated Successfully!"
+              : isBn
+              ? "🎉 আপনার সিভি সম্পন্ন হয়েছে!"
+              : "🎉 CV Created Successfully!"}
           </DialogTitle>
           <p className="text-sm text-muted-foreground mt-2">
             {isBn

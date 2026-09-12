@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatCurrency } from "@/lib/utils";
+import { getTemplateDownloadCount, formatDownloadCount } from "@/lib/cv-download-tracker";
+import { Download } from "lucide-react";
 import TemplateThumbnail from "@/components/cv/TemplateThumbnail";
 import type { CvTemplate } from "@/types";
 
@@ -39,6 +41,12 @@ export default function TemplateCard({
           style={{ height: "260px" }}
         >
           <TemplateThumbnail template={template} />
+
+          {/* Download Count Pill on Thumbnail */}
+          <div className="absolute top-2.5 left-2.5 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 z-10 shadow-sm border border-white/10">
+            <Download className="w-3 h-3 text-emerald-400" />
+            <span>{formatDownloadCount(getTemplateDownloadCount(template.slug, template.download_count), isBn)}</span>
+          </div>
 
           {/* Premium / Owned Badge */}
           {template.is_premium && !isPurchased && (
@@ -95,9 +103,18 @@ export default function TemplateCard({
                 <Maximize2 className="w-3.5 h-3.5" />
               </Button>
             </div>
-            <p className="text-[11px] text-muted-foreground capitalize mt-0.5">
-              {template.category} {isBn ? "স্টাইল টেমপ্লেট" : "Style Template"}
+            <p className="text-xs text-muted-foreground mt-0.5 capitalize">
+              {template.category} {isBn ? "স্টাইল" : "Style"}
             </p>
+            <div className="mt-2 p-1.5 px-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
+                <Download className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                <span>{isBn ? "মোট ডাউনলোড:" : "Downloads:"}</span>
+              </div>
+              <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono bg-emerald-500/15 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/20 text-[11px]">
+                {formatDownloadCount(getTemplateDownloadCount(template.slug, template.download_count), isBn)} {isBn ? "বার" : ""}
+              </span>
+            </div>
           </div>
 
           <div className="pt-2 border-t flex gap-2">
@@ -134,6 +151,10 @@ export default function TemplateCard({
                     Free
                   </Badge>
                 )}
+                <span className="inline-flex items-center gap-1 text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2.5 py-0.5 rounded-full ml-2">
+                  <Download className="w-3.5 h-3.5" />
+                  <span>{getTemplateDownloadCount(template.slug, template.download_count).toLocaleString()} {isBn ? "বার ডাউনলোড হয়েছে" : "downloads"}</span>
+                </span>
               </DialogTitle>
             </div>
             <div className="flex items-center gap-2 pr-6">

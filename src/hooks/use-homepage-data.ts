@@ -31,7 +31,7 @@ export function useHomepageData() {
   const notices = Array.isArray(raw.notices) ? raw.notices.slice(0, 5) : [];
   const featuredJobs = Array.isArray(raw.featured_jobs) ? raw.featured_jobs.slice(0, 30) : [];
   const remoteJobs = Array.isArray(raw.remote_jobs) ? raw.remote_jobs.slice(0, 30) : [];
-  const hotJobs = Array.isArray(raw.featured_jobs) ? raw.featured_jobs.slice(0, 30) : [];
+  const hotJobs = Array.isArray(raw.hot_jobs) ? raw.hot_jobs.slice(0, 30) : (Array.isArray(raw.featured_jobs) ? raw.featured_jobs.slice(0, 30) : []);
   const hpData = raw.settings ?? {};
   const loading = homepageQuery.isLoading;
 

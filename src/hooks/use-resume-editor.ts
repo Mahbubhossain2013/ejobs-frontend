@@ -229,8 +229,9 @@ export function useResumeEditor({ slug, onNotFound }: UseResumeEditorOptions) {
       setLoading(true);
       try {
         const templates = await resumeService.getTemplates().catch(() => [] as CvTemplate[]);
-        const tmpl = templates.find((t) => t.slug === slug);
-        if (!tmpl) { onNotFound?.() ?? router.push("/resume-builder"); return; }
+        const cleanSlug = (slug || "").toLowerCase();
+        const tmpl = templates.find((t) => t.slug?.toLowerCase() === cleanSlug) || templates[0];
+        if (!tmpl) { onNotFound?.() ?? router.push("/resume-builder/template"); return; }
         setTemplate(tmpl);
 
         const stored = loadDraft(slug);

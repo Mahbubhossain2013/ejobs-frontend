@@ -222,6 +222,132 @@ export default function ResumePage() {
     }
   };
 
+  const handleEditResume = async (resume: Resume) => {
+    try {
+      toast.info(isBn ? "সিভির তথ্য প্রস্তুত হচ্ছে..." : "Loading CV details...");
+      let targetResume = resume;
+      if (!targetResume.data_snapshot || Object.keys(targetResume.data_snapshot).length === 0) {
+        try {
+          const fetched = await resumeService.getResume(resume.uuid);
+          if (fetched && fetched.data_snapshot) {
+            targetResume = fetched;
+          }
+        } catch {}
+      }
+
+      const snapshot = targetResume.data_snapshot || {};
+      const personal = snapshot.personal || snapshot.personal_info || {};
+
+      const wizardData = {
+        personal: {
+          full_name: personal.full_name || "",
+          first_name: personal.first_name || "",
+          last_name: personal.last_name || "",
+          current_position: personal.current_position || personal.title || "",
+          email: personal.email || "",
+          phone: personal.phone || "",
+          alt_phone: personal.alt_phone || "",
+          address: personal.address || "",
+          permanent_address: personal.permanent_address || "",
+          zip_code: personal.zip_code || "",
+          city: personal.city || personal.location || "",
+          photo_url: personal.photo_url || snapshot.photo_url || "",
+          dob: personal.dob || "",
+          place_of_birth: personal.place_of_birth || "",
+          driving_license: personal.driving_license || "",
+          gender: personal.gender || "",
+          nationality: personal.nationality || "Bangladeshi",
+          marital_status: personal.marital_status || "",
+          father_name: personal.father_name || "",
+          mother_name: personal.mother_name || "",
+          religion: personal.religion || "",
+          blood_group: personal.blood_group || "",
+          nid: personal.nid || "",
+          linkedin: personal.linkedin || (snapshot.social_links?.linkedin) || "",
+          github: personal.github || (snapshot.social_links?.github) || "",
+          website: personal.website || (snapshot.social_links?.portfolio) || "",
+          additional_info: personal.additional_info || "",
+          signature_url: personal.signature_url || "",
+        },
+        resume_objective: {
+          description:
+            snapshot.summary ||
+            snapshot.resume_objective?.description ||
+            (typeof snapshot.resume_objective === "string" ? snapshot.resume_objective : "") ||
+            "",
+        },
+        work_experience: (snapshot.experience || snapshot.work_experience || []).map((w: any) => ({
+          job_title: w.position || w.job_title || "",
+          employer: w.company || w.employer || "",
+          city: w.location || w.city || "",
+          start_date: w.start_date || "",
+          end_date: w.end_date || "",
+          is_current: !!w.is_current,
+          employment_type: w.employment_type || "",
+          description: w.description || "",
+        })),
+        education: (snapshot.education || []).map((e: any) => ({
+          school: e.institution || e.school || "",
+          degree: e.degree || "",
+          field_of_study: e.field_of_study || "",
+          board: e.board || "",
+          grade: e.grade || "",
+          city: e.location || e.city || "",
+          start_date: e.start_date || "",
+          end_date: e.end_date || "",
+          description: e.description || "",
+        })),
+        skills: (snapshot.skills || []).map((s: any) => ({
+          skill: typeof s === "string" ? s : (s.skill || s.name || ""),
+          level: typeof s === "object" && s.level ? String(s.level) : "5",
+        })),
+        languages: (snapshot.languages || []).map((l: any) => ({
+          language: typeof l === "string" ? l : (l.language || l.name || ""),
+          level: typeof l === "object" && (l.level || l.proficiency) ? String(l.level || l.proficiency) : "Fluent",
+        })),
+        achievements: (snapshot.awards || snapshot.achievements || []).map((a: any) => ({
+          description: typeof a === "string" ? a : (a.description || a.name || ""),
+        })),
+        interests: (snapshot.hobbies || snapshot.interests || []).map((h: any) => ({
+          hobby: typeof h === "string" ? h : (h.hobby || h.name || ""),
+        })),
+        certifications: (snapshot.certifications || []).map((c: any) => ({
+          name: c.name || "",
+          issuer: c.issuer || "",
+          date: c.date || "",
+        })),
+        projects: (snapshot.projects || []).map((p: any) => ({
+          name: p.name || "",
+          description: p.description || "",
+          url: p.url || "",
+        })),
+        references: (snapshot.references || []).map((r: any) => ({
+          name: r.name || "",
+          designation: r.designation || "",
+          organization: r.organization || "",
+          phone: r.phone || "",
+          email: r.email || "",
+          relation: r.relation || "",
+        })),
+        training: (snapshot.training || []).map((t: any) => ({
+          title: t.title || "",
+          institute: t.institute || "",
+          duration: t.duration || "",
+        })),
+        custom_sections: snapshot.custom_sections || [],
+        template_slug: targetResume.template_slug || snapshot.template_slug || "modern-twocol",
+      };
+
+      localStorage.setItem("resume_wizard_data", JSON.stringify(wizardData));
+      localStorage.setItem("editing_resume_uuid", targetResume.uuid);
+      localStorage.setItem("editing_resume_title", targetResume.title || "");
+
+      router.push("/resume-builder/personal");
+    } catch {
+      toast.error(isBn ? "সিভি এডিটর লোড করতে ব্যর্থ" : "Failed to open CV editor");
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -600,12 +726,10 @@ export default function ResumePage() {
                       variant="ghost"
                       size="sm"
                       className="h-8 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
-                      asChild
+                      onClick={() => handleEditResume(resume)}
                     >
-                      <Link href={`/resume-builder/edit/${resume.template_slug || "modern-twocol"}`}>
-                        <Pencil className="h-3 w-3" />
-                        {isBn ? "এডিট" : "Edit"}
-                      </Link>
+                      <Pencil className="h-3 w-3" />
+                      {isBn ? "এডিট" : "Edit"}
                     </Button>
 
                     <div className="flex-1" />

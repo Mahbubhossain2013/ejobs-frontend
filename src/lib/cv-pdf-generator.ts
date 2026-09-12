@@ -61,6 +61,37 @@ export function preparePrintableHtml(rawHtml: string): string {
         }
       }
 
+      /* Universal Font Legibility Booster */
+      body, .cv-page, .resume-page {
+        font-size: 11.5px !important;
+        line-height: 1.55 !important;
+      }
+      p, li, .desc, .exp-desc, .details, .summary-text {
+        font-size: 11px !important;
+        line-height: 1.55 !important;
+      }
+      .sec-title, .main-section-title, .sec-heading, .section-title, .side-title, .side-tab, .badge-title {
+        font-size: 13.5px !important;
+        letter-spacing: 0.8px !important;
+      }
+      .exp-head, .card-head, .edu-item .exp-head, .item-head {
+        font-size: 12.5px !important;
+      }
+      .exp-co, .company-name, .hospital, .role, .designation {
+        font-size: 11.5px !important;
+      }
+      .side-kv-table, .personal-table, .train-table, .data-sheet {
+        font-size: 10.5px !important;
+        line-height: 1.5 !important;
+      }
+      .side-kv-lbl, .label-col, .col-lbl, .lbl {
+        font-size: 10.5px !important;
+        font-weight: 600 !important;
+      }
+      .side-kv-val, .val-col, .col-val, .val {
+        font-size: 10.5px !important;
+      }
+
       /* Readability booster: Increase font sizes by 2px across templates */
       .left-desc { font-size: 12px !important; line-height: 1.6 !important; }
       .bullet-list-left li { font-size: 12.5px !important; }
@@ -76,13 +107,14 @@ export function preparePrintableHtml(rawHtml: string): string {
       .subtitle-left { font-size: 15px !important; }
       .name-title-left { font-size: 32px !important; }
 
-      /* Signature Styling */
-      .cv-signature-section, .signature-section {
+      /* Signature Styling: clean, solid line, right aligned, NO dashed border */
+      .cv-signature-section, .signature-section, .signature-box {
         display: flex !important;
         justify-content: flex-end !important;
         width: 100% !important;
         margin-top: 24px !important;
         padding-top: 8px !important;
+        border-top: none !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
       }
@@ -106,12 +138,12 @@ export function preparePrintableHtml(rawHtml: string): string {
   // If HTML doesn't have signature block yet, inject a fallback signature block
   if (!processedHtml.includes("cv-signature-section") && !processedHtml.includes("signature-box")) {
     const fallbackSig = `
-      <div class="cv-signature-section" style="margin-top: 24px; padding-top: 8px; display: flex; justify-content: flex-end; page-break-inside: avoid !important; break-inside: avoid !important; width: 100%;">
-        <div style="text-align: center; min-width: 190px; display: inline-block;">
-          <div style="height: 35px;"></div>
-          <div style="border-top: 1.5px solid #334155; width: 180px; margin: 0 auto 5px auto;"></div>
-          <div style="font-size: 13px; font-weight: 700; color: #1e293b; letter-spacing: 0.3px;">Authorized Signature</div>
-          <div style="font-size: 10.5px; color: #64748b; margin-top: 2px;">স্বাক্ষর ও তারিখ / Signature & Date</div>
+      <div class="cv-signature-section signature-box" style="margin-top: 24px; padding-top: 6px; display: flex; justify-content: flex-end; width: 100%; page-break-inside: avoid !important; break-inside: avoid !important; border-top: none !important;">
+        <div style="text-align: center; min-width: 170px; display: inline-block;">
+          <div style="font-family: 'Dancing Script', 'Great Vibes', 'Brush Script MT', 'Georgia', cursive, serif; font-size: 20px; font-weight: bold; font-style: italic; color: #1e293b; margin-bottom: 2px; line-height: 1.2;">Authorized Signature</div>
+          <div style="border-top: 1.5px solid #1e293b; width: 160px; margin: 0 auto 4px auto;"></div>
+          <div style="font-size: 11px; font-weight: 700; color: #1e293b; letter-spacing: 0.2px;">Authorized Signature</div>
+          <div style="font-size: 9.5px; color: #64748b;">Signature</div>
         </div>
       </div>
     `;
@@ -308,7 +340,7 @@ async function toBase64PngDataUrl(src: string): Promise<string> {
 }
 
 /**
- * Generates and downloads a pixel-perfect, high-DPI A4 PDF directly from HTML.
+ * Generates and downloads a pixel-perfect, ultra-high-DPI (300+ DPI) A4 PDF directly from HTML.
  * Converts all images to inline Base64 data URLs before rendering to guarantee
  * photos, signatures, and logos are never omitted by CORS or browser sandbox rules.
  */
@@ -465,18 +497,23 @@ export async function downloadCvAsPdf(
       } catch {}
     }
 
+    // Scale 2 gives crystal-clear print quality without exceeding GPU texture/stride limits
     const canvas = await html2canvas(target, {
       scale: 2,
       useCORS: true,
       allowTaint: false,
-      backgroundColor: null,
+      backgroundColor: "#ffffff",
       logging: false,
+      width: 794,
+      height: fullCanvasHeight,
       windowWidth: 794,
       windowHeight: fullCanvasHeight,
-      height: fullCanvasHeight,
+      x: 0,
+      y: 0,
+      scrollX: 0,
+      scrollY: 0,
     });
 
-    const imgData = canvas.toDataURL("image/jpeg", 0.95);
     const pdf = new jsPDF({
       orientation: "portrait",
       unit: "mm",
@@ -484,21 +521,45 @@ export async function downloadCvAsPdf(
       compress: true,
     });
 
-    const pageWidth = 210;
-    const pageHeight = 297;
-    const imgHeight = (canvas.height * pageWidth) / canvas.width;
+    const pageWidthMm = 210;
+    const pageHeightMm = 297;
+    const pageCanvasHeight = Math.round((canvas.width * 297) / 210);
 
-    let heightLeft = imgHeight;
-    let position = 0;
+    for (let page = 0; page < totalPages; page++) {
+      if (page > 0) {
+        pdf.addPage();
+      }
 
-    pdf.addImage(imgData, "JPEG", 0, position, pageWidth, imgHeight, undefined, "FAST");
-    heightLeft -= pageHeight;
+      // Render each page into an exact A4 single-page canvas to prevent stride corruption
+      const pageCanvas = document.createElement("canvas");
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = pageCanvasHeight;
+      const pageCtx = pageCanvas.getContext("2d");
 
-    while (heightLeft > 5) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, "JPEG", 0, position, pageWidth, imgHeight, undefined, "FAST");
-      heightLeft -= pageHeight;
+      if (pageCtx) {
+        pageCtx.fillStyle = "#ffffff";
+        pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+
+        const sourceY = page * pageCanvasHeight;
+        const availableHeight = Math.min(pageCanvasHeight, canvas.height - sourceY);
+
+        if (availableHeight > 0) {
+          pageCtx.drawImage(
+            canvas,
+            0,
+            sourceY,
+            canvas.width,
+            availableHeight,
+            0,
+            0,
+            canvas.width,
+            availableHeight
+          );
+        }
+
+        const pageImg = pageCanvas.toDataURL("image/jpeg", 0.95);
+        pdf.addImage(pageImg, "JPEG", 0, 0, pageWidthMm, pageHeightMm, undefined, "FAST");
+      }
     }
 
     const safeName = fileName

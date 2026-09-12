@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useThemeStore } from "@/store/theme-store";
-import { resumeService } from "@/services/resume.service";
+import { resumeService, DEFAULT_FALLBACK_TEMPLATES } from "@/services/resume.service";
 import { subscriptionService, type QuotaInfo } from "@/services/subscription.service";
 import api from "@/lib/api-client";
 import PublicLayout from "@/components/layout/PublicLayout";
@@ -45,7 +45,7 @@ export default function CvBuilderClient() {
     document.title = isBn ? "CV বিল্ডার | জব পোর্টাল" : "CV Builder | Job Portal";
   }, [isBn]);
 
-  const [templates, setTemplates] = useState<CvTemplate[]>([]);
+  const [templates, setTemplates] = useState<CvTemplate[]>(DEFAULT_FALLBACK_TEMPLATES);
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [profile, setProfile] = useState<CvProfile | null>(null);
   const [loading, setLoading] = useState(true);

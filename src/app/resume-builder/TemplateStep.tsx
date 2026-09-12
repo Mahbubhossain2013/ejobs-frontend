@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { useResumeWizard } from "@/hooks/use-resume-wizard";
 import { useThemeStore } from "@/store/theme-store";
-import { resumeService } from "@/services/resume.service";
+import { resumeService, DEFAULT_FALLBACK_TEMPLATES } from "@/services/resume.service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
 import TemplateThumbnail from "@/components/cv/TemplateThumbnail";
 import type { CvTemplate } from "@/types";
+import { getTemplateDownloadCount, formatDownloadCount } from "@/lib/cv-download-tracker";
 
 const A4_WIDTH_PX = 794;
 const A4_HEIGHT_PX = Math.round(A4_WIDTH_PX * 1.414);
@@ -44,8 +45,8 @@ export default function TemplateStep({
   const isBn = language === "bn";
   const router = useRouter();
   const { data, setSectionData } = wizard;
-  const [templates, setTemplates] = useState<CvTemplate[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [templates, setTemplates] = useState<CvTemplate[]>(DEFAULT_FALLBACK_TEMPLATES);
+  const [loading, setLoading] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(
     data.template_slug || "modern-twocol"
   );
@@ -78,14 +79,15 @@ export default function TemplateStep({
     resumeService
       .getTemplates()
       .then((t) => {
-        setTemplates(t);
-        if (!selectedSlug && t.length > 0) {
-          setSelectedSlug(t[0].slug);
+        const list = t && t.length > 0 ? t : DEFAULT_FALLBACK_TEMPLATES;
+        setTemplates(list);
+        if (!selectedSlug && list.length > 0) {
+          setSelectedSlug(list[0].slug);
         }
         setLoading(false);
 
         // Prefetch demo HTML for all templates so each card renders its full visual design instantly
-        t.forEach((tpl) => {
+        list.forEach((tpl) => {
           resumeService
             .getPreviewDemo(tpl.slug)
             .then((html) => {
@@ -96,7 +98,13 @@ export default function TemplateStep({
             .catch(() => {});
         });
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setTemplates(DEFAULT_FALLBACK_TEMPLATES);
+        if (!selectedSlug && DEFAULT_FALLBACK_TEMPLATES.length > 0) {
+          setSelectedSlug(DEFAULT_FALLBACK_TEMPLATES[0].slug);
+        }
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -561,7 +569,7 @@ export default function TemplateStep({
                     : "border-border hover:border-primary/50"
                 }`}
               >
-                                {/* Real Visual CV Template Design Thumbnail */}
+                {/* Real Visual CV Template Design Thumbnail */}
                 <div className="relative w-full overflow-hidden border-b bg-slate-100 dark:bg-slate-900" style={{ height: "290px" }}>
                   <TemplateThumbnail template={t} demoHtml={templateDemos[t.slug]} />
 
@@ -570,6 +578,14 @@ export default function TemplateStep({
                     <div className="absolute top-2 left-2 z-10 bg-primary text-primary-foreground px-2.5 py-0.5 rounded-full text-[11px] font-bold shadow-md flex items-center gap-1">
                       <Check className="w-3.5 h-3.5" />
                       {isBn ? "সিলেক্টেড" : "Selected"}
+                    </div>
+                  )}
+
+                  {/* Download Count Pill on Thumbnail */}
+                  {!isSelected && (
+                    <div className="absolute top-2 left-2 z-10 bg-slate-900/80 backdrop-blur-md text-white px-2 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 shadow-sm border border-white/10">
+                      <Download className="w-3 h-3 text-emerald-400" />
+                      <span>{formatDownloadCount(getTemplateDownloadCount(t.slug, t.download_count), isBn)}</span>
                     </div>
                   )}
 
@@ -606,9 +622,20 @@ export default function TemplateStep({
                     <p className="font-bold text-sm truncate text-foreground group-hover:text-primary transition-colors">
                       {t.name}
                     </p>
-                    <p className="text-[11px] text-muted-foreground capitalize mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5 capitalize">
                       {t.category} {isBn ? "স্টাইল" : "Style"}
                     </p>
+
+                    {/* Dedicated Download Count Row (exact location requested by user in red box) */}
+                    <div className="mt-2 p-1.5 px-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
+                        <Download className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                        <span>{isBn ? "মোট ডাউনলোড:" : "Downloads:"}</span>
+                      </div>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono bg-emerald-500/15 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/20 text-[11px]">
+                        {formatDownloadCount(getTemplateDownloadCount(t.slug, t.download_count), isBn)} {isBn ? "বার" : ""}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-between mt-2 pt-2 border-t text-xs">
@@ -781,6 +808,12 @@ export default function TemplateStep({
               <Badge variant="outline" className="text-xs border-slate-600 text-slate-300">
                 {zoomTemplate?.category}
               </Badge>
+              {zoomTemplate && (
+                <Badge variant="secondary" className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 gap-1 px-2 py-0.5">
+                  <Download className="w-3 h-3" />
+                  {getTemplateDownloadCount(zoomTemplate.slug).toLocaleString()} {isBn ? "বার ডাউনলোড" : "downloads"}
+                </Badge>
+              )}
             </DialogTitle>
             {zoomTemplate && (
               <Button

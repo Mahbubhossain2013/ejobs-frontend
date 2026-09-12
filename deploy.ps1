@@ -4,10 +4,22 @@ $ErrorActionPreference = 'Stop'
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Split-Path -Parent $scriptDir
-$frontendDir = Join-Path $repoRoot 'frontend'
+$frontendDir = if (Test-Path (Join-Path $repoRoot 'frontend')) { 
+    Join-Path $repoRoot 'frontend' 
+} elseif (Test-Path (Join-Path $repoRoot 'eJobs-Frontend')) { 
+    Join-Path $repoRoot 'eJobs-Frontend' 
+} else { 
+    $scriptDir 
+}
 $buildDir = Join-Path $frontendDir '.next'
 $standaloneDir = Join-Path $buildDir 'standalone'
-$innerDir = Join-Path $standaloneDir 'frontend'
+$innerDir = if (Test-Path (Join-Path $standaloneDir 'frontend')) { 
+    Join-Path $standaloneDir 'frontend' 
+} elseif (Test-Path (Join-Path $standaloneDir 'eJobs-Frontend')) {
+    Join-Path $standaloneDir 'eJobs-Frontend'
+} else { 
+    $standaloneDir 
+}
 $staticDir = Join-Path $buildDir 'static'
 $publicDir = Join-Path $frontendDir 'public'
 $zipPath = Join-Path $repoRoot 'frontend-deploy.zip'
@@ -22,11 +34,15 @@ New-Item -ItemType Directory -Path $workingDir | Out-Null
 Write-Host "Packaging standalone app from: $innerDir"
 Copy-Item -Path (Join-Path $innerDir '*') -Destination $workingDir -Recurse -Force
 
-$destStatic = Join-Path $workingDir '.next' 'static'
+$destStatic = Join-Path (Join-Path $workingDir '.next') 'static'
 if (Test-Path $staticDir) {
     Write-Host "Copying static assets"
     if (-not (Test-Path $destStatic)) { New-Item -ItemType Directory -Path $destStatic | Out-Null }
     Copy-Item -Path (Join-Path $staticDir '*') -Destination $destStatic -Recurse -Force
+
+    $destUnderscoreStatic = Join-Path (Join-Path $workingDir '_next') 'static'
+    if (-not (Test-Path $destUnderscoreStatic)) { New-Item -ItemType Directory -Path $destUnderscoreStatic | Out-Null }
+    Copy-Item -Path (Join-Path $staticDir '*') -Destination $destUnderscoreStatic -Recurse -Force
 }
 
 if (Test-Path $publicDir) {
