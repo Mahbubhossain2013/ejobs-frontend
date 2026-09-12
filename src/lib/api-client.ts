@@ -7,7 +7,7 @@ declare module "axios" {
   }
 }
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://admin.ejobs.bd").replace(/\/api\/?$/, "");
+export const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "https://admin.ejobs.bd").replace(/\/api\/?$/, "");
 const isBrowser = typeof window !== "undefined";
 const api = axios.create({
   baseURL: `${API_BASE}/api`,

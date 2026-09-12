@@ -4,6 +4,8 @@
  * Strictly starts from 0 and increments every time a user downloads or prints a CV.
  */
 
+import { API_BASE } from "@/lib/api-client";
+
 const STORAGE_KEY_PREFIX = "ejobs_cv_downloads_v2_";
 
 /**
@@ -56,15 +58,10 @@ export function recordTemplateDownload(slug?: string, baseCount?: number): numbe
     );
 
     // Background sync with backend API to increment persistent download count in database
-    fetch(`/api/cv/templates/${slug}/track-download`, {
+    fetch(`${API_BASE}/api/cv/templates/${slug}/track-download`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-    }).catch(() => {
-      fetch(`https://admin.ejobs.bd/api/cv/templates/${slug}/track-download`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      }).catch(() => {});
-    });
+    }).catch(() => {});
 
     return totalCount;
   } catch {

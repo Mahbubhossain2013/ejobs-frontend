@@ -6,7 +6,7 @@ import type { useResumeWizard } from "@/hooks/use-resume-wizard";
 import { useThemeStore } from "@/store/theme-store";
 import { useAuth } from "@/hooks/use-auth";
 import { resumeService } from "@/services/resume.service";
-import api from "@/lib/api-client";
+import api, { API_BASE } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,8 @@ import {
   Palette,
   FileCheck,
   Edit3,
+  RotateCcw,
+  AlertCircle,
 } from "lucide-react";
 import {
   Dialog,
@@ -203,6 +205,8 @@ export default function PreviewStep({
 
   const [previewHtml, setPreviewHtml] = useState("");
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [fullModalOpen, setFullModalOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -236,32 +240,105 @@ export default function PreviewStep({
   useEffect(() => {
     if (!selectedSlug) return;
     setPreviewLoading(true);
+    setPreviewError(null);
 
     const payload = buildPayload();
+    let isMounted = true;
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), 25000);
 
-    // Use plain fetch via Next.js proxy rewrite /api/* → backend
-    fetch(`/api/cv/live-preview/${selectedSlug}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "text/html,*/*" },
-      body: JSON.stringify(payload),
-    })
-      .then(async (res) => {
+    const loadLivePreview = async () => {
+      // 1. First attempt: call Axios api.post (direct to API_BASE, includes sanctum token if logged in)
+      try {
+        const res = await api.post(`/cv/live-preview/${selectedSlug}`, payload, {
+          headers: { Accept: "text/html,*/*" },
+          responseType: "text",
+          timeout: 20000,
+          signal: abortController.signal,
+        });
+
+        if (!isMounted) return;
+        if (typeof res.data === "string" && res.data.length > 50) {
+          clearTimeout(timeoutId);
+          setPreviewHtml(res.data);
+          setPreviewError(null);
+          setPreviewLoading(false);
+          return;
+        }
+      } catch (axiosErr: any) {
+        if (!isMounted) return;
+        if (abortController.signal.aborted) {
+          clearTimeout(timeoutId);
+          setPreviewError(
+            isBn
+              ? "সার্ভার রেসপন্স করতে অনেক সময় নিয়েছে (Timeout)। অনুগ্রহ করে পুনরায় চেষ্টা করুন।"
+              : "Server request timed out. Please click Retry."
+          );
+          setPreviewHtml("");
+          setPreviewLoading(false);
+          return;
+        }
+        console.warn("Axios preview request failed, trying direct fetch to API_BASE:", axiosErr?.message);
+      }
+
+      // 2. Second attempt: direct fetch to API_BASE (bypasses Next.js proxy rewrite)
+      try {
+        const directUrl = `${API_BASE}/api/cv/live-preview/${selectedSlug}`;
+        const res = await fetch(directUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "text/html,*/*",
+          },
+          body: JSON.stringify(payload),
+          signal: abortController.signal,
+        });
+
+        if (!isMounted) return;
+        clearTimeout(timeoutId);
+
         if (!res.ok) {
-          const text = await res.text().catch(() => "");
-          console.error("CV preview error:", res.status, text.slice(0, 300));
           throw new Error(`HTTP ${res.status}`);
         }
-        return res.text();
-      })
-      .then((html) => {
-        setPreviewHtml(html);
-      })
-      .catch((err) => {
-        console.error("CV preview fetch failed:", err);
-        setPreviewHtml("<p style='padding:20px;color:red;'>Preview unavailable: " + err.message + "</p>");
-      })
-      .finally(() => setPreviewLoading(false));
-  }, [selectedSlug, buildPayload]);
+        const html = await res.text();
+        if (isMounted) {
+          setPreviewHtml(html);
+          setPreviewError(null);
+        }
+      } catch (fetchErr: any) {
+        if (!isMounted) return;
+        clearTimeout(timeoutId);
+        console.error("Direct live preview failed:", fetchErr);
+        const isTimeout =
+          abortController.signal.aborted ||
+          fetchErr?.name === "AbortError" ||
+          fetchErr?.message?.includes("Timeout") ||
+          fetchErr?.code === "ECONNABORTED";
+        setPreviewError(
+          isTimeout
+            ? isBn
+              ? "সার্ভার রেসপন্স করতে অনেক সময় নিয়েছে (Timeout)। অনুগ্রহ করে পুনরায় চেষ্টা করুন।"
+              : "Server request timed out. Please click Retry."
+            : isBn
+            ? `প্রিভিউ লোড করা যায়নি (${fetchErr?.message || "নেটওয়ার্ক সমস্যা"})। পুনরায় চেষ্টা করুন।`
+            : `Preview unavailable: ${fetchErr?.message || "Network error"}. Please retry.`
+        );
+        setPreviewHtml("");
+      } finally {
+        if (isMounted) {
+          setPreviewLoading(false);
+        }
+      }
+    };
+
+    loadLivePreview();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+      abortController.abort();
+    };
+  }, [selectedSlug, buildPayload, retryKey, isBn]);
 
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [createdResumeUuid, setCreatedResumeUuid] = useState<string | null>(null);
@@ -269,8 +346,8 @@ export default function PreviewStep({
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const handlePrint = () => {
-    if (!previewHtml) {
-      toast.error(isBn ? "প্রিভিউ প্রস্তুত হয়নি" : "Preview is not ready yet");
+    if (!previewHtml || previewError) {
+      toast.error(isBn ? "প্রিভিউ প্রস্তুত হয়নি, অনুগ্রহ করে অপেক্ষা করুন অথবা পুনরায় চেষ্টা করুন" : "Preview is not ready yet. Please wait or retry.");
       return;
     }
 
@@ -314,8 +391,8 @@ export default function PreviewStep({
   };
 
   const handleDownloadPdf = async () => {
-    if (!previewHtml) {
-      toast.error(isBn ? "প্রিভিউ প্রস্তুত হয়নি" : "Preview is not ready yet");
+    if (!previewHtml || previewError) {
+      toast.error(isBn ? "প্রিভিউ প্রস্তুত হয়নি, অনুগ্রহ করে অপেক্ষা করুন অথবা পুনরায় চেষ্টা করুন" : "Preview is not ready yet. Please wait or retry.");
       return;
     }
 
@@ -381,6 +458,11 @@ export default function PreviewStep({
   };
 
   const handleSubmitCv = async () => {
+    if (!previewHtml || previewError) {
+      toast.error(isBn ? "প্রিভিউ প্রস্তুত হয়নি, অনুগ্রহ করে অপেক্ষা করুন অথবা পুনরায় চেষ্টা করুন" : "Preview is not ready yet. Please wait or retry.");
+      return;
+    }
+
     const hasAuth = (() => {
       if (typeof window === "undefined") return false;
       try {
@@ -594,6 +676,35 @@ export default function PreviewStep({
                     : "Rendering your customized CV..."}
                 </p>
               </div>
+            ) : previewError ? (
+              <div className="flex flex-col items-center justify-center min-h-[450px] p-6 text-center max-w-md mx-auto">
+                <div className="w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center mb-4 shadow-sm">
+                  <AlertCircle className="w-7 h-7" />
+                </div>
+                <h3 className="font-bold text-lg text-foreground mb-2">
+                  {isBn ? "সিভি প্রিভিউ লোড হতে সমস্যা হয়েছে" : "Unable to Load CV Preview"}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                  {previewError}
+                </p>
+                <div className="flex items-center gap-3 flex-wrap justify-center">
+                  <Button
+                    onClick={() => setRetryKey((k) => k + 1)}
+                    className="gap-2 bg-primary text-primary-foreground font-bold shadow-md hover:opacity-90"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    {isBn ? "পুনরায় চেষ্টা করুন" : "Retry Preview"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={onPrev}
+                    className="gap-2 font-semibold"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    {isBn ? "আগের ধাপ (তথ্য সম্পাদন)" : "Edit Details"}
+                  </Button>
+                </div>
+              </div>
             ) : previewHtml ? (
               <div
                 ref={wrapperRef}
@@ -626,6 +737,15 @@ export default function PreviewStep({
             ) : (
               <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
                 <p>{isBn ? "প্রিভিউ লোড করা যায়নি।" : "Preview could not be loaded."}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRetryKey((k) => k + 1)}
+                  className="gap-2 mt-3 font-semibold"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  {isBn ? "পুনরায় চেষ্টা করুন" : "Retry"}
+                </Button>
               </div>
             )}
           </CardContent>
