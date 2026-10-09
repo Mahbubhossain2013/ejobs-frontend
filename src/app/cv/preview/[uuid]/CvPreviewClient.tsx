@@ -3,12 +3,12 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { resumeService } from "@/services/resume.service";
+import { resumeService, DEFAULT_FALLBACK_TEMPLATES } from "@/services/resume.service";
 import { useThemeStore } from "@/store/theme-store";
 import { toast } from "sonner";
 import {
   ArrowLeft, Download, Share2, LinkIcon, Loader2,
-  Lock, Globe, Printer,
+  Lock, Globe, Printer, Crown,
 } from "lucide-react";
 import { printCvHtml, downloadCvAsPdf, preparePrintableHtml } from "@/lib/cv-pdf-generator";
 import PageCountSelector, { PageCount } from "@/components/cv/PageCountSelector";
@@ -32,6 +32,9 @@ export default function CvPreviewClient() {
   const [downloading, setDownloading] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
   const [shareToken, setShareToken] = useState<string | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
+  const [isPaid, setIsPaid] = useState(true);
+  const [templatePrice, setTemplatePrice] = useState(0);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -69,6 +72,22 @@ export default function CvPreviewClient() {
 
         const slug = resume.template_slug;
         if (!slug) throw new Error("No template assigned to this resume");
+
+        if (resume.template) {
+          setIsPremium(Boolean(resume.template.is_premium && Number(resume.template.price) > 0));
+          setTemplatePrice(Number(resume.template.price || 0));
+        } else if (slug) {
+          const fallback = DEFAULT_FALLBACK_TEMPLATES.find((t) => t.slug === slug);
+          if (fallback && fallback.is_premium) {
+            setIsPremium(true);
+            setTemplatePrice(Number(fallback.price || 0));
+          }
+        }
+        if (resume.is_paid !== undefined) {
+          setIsPaid(Boolean(resume.is_paid));
+        } else if (resume.data_snapshot?.is_paid !== undefined) {
+          setIsPaid(Boolean(resume.data_snapshot.is_paid));
+        }
 
         // Try renderPreview first — reads from the resume's frozen data_snapshot
         try {
@@ -116,6 +135,16 @@ export default function CvPreviewClient() {
   }, [uuid]);
 
   const handleDownloadPdf = async () => {
+    if (isPremium && !isPaid) {
+      toast.error(
+        isBn
+          ? `🔒 এটি একটি প্রিমিয়াম টেমপ্লেট${templatePrice > 0 ? ` (৳${templatePrice})` : ""}। ডাউনলোড করতে প্রথমে পেমেন্ট সম্পন্ন করুন।`
+          : `🔒 Premium template${templatePrice > 0 ? ` (৳${templatePrice})` : ""}. Please complete payment before downloading.`
+      );
+      router.push(`/resume-builder?edit=${uuid}`);
+      return;
+    }
+
     setDownloading(true);
     try {
       if (html) {
@@ -154,6 +183,15 @@ export default function CvPreviewClient() {
   };
 
   const handlePrint = () => {
+    if (isPremium && !isPaid) {
+      toast.error(
+        isBn
+          ? `🔒 এটি একটি প্রিমিয়াম টেমপ্লেট${templatePrice > 0 ? ` (৳${templatePrice})` : ""}। প্রিন্ট করতে প্রথমে পেমেন্ট সম্পন্ন করুন।`
+          : `🔒 Premium template${templatePrice > 0 ? ` (৳${templatePrice})` : ""}. Please complete payment before printing.`
+      );
+      router.push(`/resume-builder?edit=${uuid}`);
+      return;
+    }
     if (!html) return;
     printCvHtml(html, pageCount);
   };
@@ -210,10 +248,17 @@ export default function CvPreviewClient() {
             <Button variant="outline" size="sm" onClick={() => router.push("/resume-builder")}>
               <ArrowLeft className="h-4 w-4 mr-1" />{isBn ? "ফিরে যান" : "Go Back"}
             </Button>
-            <Button size="sm" onClick={handleDownloadPdf} disabled={downloading}>
-              {downloading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Download className="h-4 w-4 mr-1" />}
-              {isBn ? "PDF ডাউনলোড" : "Download PDF"}
-            </Button>
+            {isPremium && !isPaid ? (
+              <Button size="sm" onClick={() => router.push(`/resume-builder?edit=${uuid}`)} className="bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold gap-1.5 shadow-sm">
+                <Crown className="h-4 w-4 text-amber-200" />
+                {isBn ? `পেমেন্ট ও আনলক (${templatePrice > 0 ? `৳${templatePrice}` : ""})` : `Unlock Template (${templatePrice > 0 ? `৳${templatePrice}` : ""})`}
+              </Button>
+            ) : (
+              <Button size="sm" onClick={handleDownloadPdf} disabled={downloading}>
+                {downloading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Download className="h-4 w-4 mr-1" />}
+                {isBn ? "PDF ডাউনলোড" : "Download PDF"}
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -246,14 +291,30 @@ export default function CvPreviewClient() {
                 }
               }}
             />
-            <Button variant="default" size="sm" onClick={handlePrint} className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm">
-              <Printer className="h-4 w-4" />
-              {isBn ? "প্রিন্ট করুন" : "Print"}
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={downloading} className="gap-1.5">
-              {downloading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Download className="h-4 w-4 mr-1" />}
-              {isBn ? "PDF ডাউনলোড" : "Download PDF"}
-            </Button>
+            {isPremium && !isPaid ? (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => router.push(`/resume-builder?edit=${uuid}`)}
+                className="gap-1.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold shadow-md"
+              >
+                <Crown className="h-4 w-4 text-amber-200" />
+                {isBn
+                  ? `পেমেন্ট সম্পন্ন করুন (${templatePrice > 0 ? `৳${templatePrice}` : ""})`
+                  : `Complete Payment (${templatePrice > 0 ? `৳${templatePrice}` : ""})`}
+              </Button>
+            ) : (
+              <>
+                <Button variant="default" size="sm" onClick={handlePrint} className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm">
+                  <Printer className="h-4 w-4" />
+                  {isBn ? "প্রিন্ট করুন" : "Print"}
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={downloading} className="gap-1.5">
+                  {downloading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Download className="h-4 w-4 mr-1" />}
+                  {isBn ? "PDF ডাউনলোড" : "Download PDF"}
+                </Button>
+              </>
+            )}
             <Button variant="outline" size="sm" onClick={handleShareToggle}>
               <Share2 className="h-4 w-4 mr-1" />
               {isPublic ? (isBn ? "আনপাবলিশ" : "Unpublish") : (isBn ? "শেয়ার করুন" : "Share")}
