@@ -85,18 +85,6 @@ export default function TemplateStep({
           setSelectedSlug(list[0].slug);
         }
         setLoading(false);
-
-        // Prefetch demo HTML for all templates so each card renders its full visual design instantly
-        list.forEach((tpl) => {
-          resumeService
-            .getPreviewDemo(tpl.slug)
-            .then((html) => {
-              if (html) {
-                setTemplateDemos((prev) => ({ ...prev, [tpl.slug]: html }));
-              }
-            })
-            .catch(() => {});
-        });
       })
       .catch(() => {
         setTemplates(DEFAULT_FALLBACK_TEMPLATES);

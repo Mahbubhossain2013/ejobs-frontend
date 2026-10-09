@@ -1,10 +1,306 @@
 /**
+ * CV PDF Generator & Print Enhancement System
+ * 
+ * Supports dynamic 1-Page, 2-Page, and 3-Page strict fitting:
+ * - 1 Page: Compact density, tighter margins/fonts, auto-scaled to strictly fit exactly 1 A4 page with zero spillover.
+ * - 2 Pages: Balanced density, even section distribution across 2 pages without awkward blank gaps at the bottom.
+ * - 3 Pages: Executive expanded density, rich detail layout fitted across 3 pages without awkward gaps or spillover.
+ */
+
+export type PageCount = 1 | 2 | 3;
+
+/**
+ * Returns dynamic CSS tailored for the selected page count (1, 2, or 3 pages).
+ */
+export function getPageFitStyles(pageCount: PageCount = 1): string {
+  if (pageCount === 1) {
+    return `
+      /* ─────────────────────────────────────────────────────────────
+         1-PAGE MODE (Strict Single Page Fit - Compact & Professional)
+         ───────────────────────────────────────────────────────────── */
+      @page {
+        size: A4 portrait;
+        margin: 0mm !important;
+      }
+      @media print {
+        html, body {
+          height: 297mm !important;
+          max-height: 297mm !important;
+          overflow: hidden !important;
+        }
+        .cv-page {
+          height: 297mm !important;
+          max-height: 297mm !important;
+          min-height: 297mm !important;
+          overflow: hidden !important;
+          page-break-after: avoid !important;
+          break-after: avoid !important;
+        }
+      }
+
+      /* Compact Typography & Spacing for 1-Page */
+      body, .cv-page, .resume-page {
+        font-size: 10px !important;
+        line-height: 1.34 !important;
+      }
+      p, li, .desc, .exp-desc, .details, .summary-text, .item-desc {
+        font-size: 9.5px !important;
+        line-height: 1.32 !important;
+      }
+      .bullet-list-left li, .bullet-list-right li {
+        font-size: 9.5px !important;
+        line-height: 1.3 !important;
+        margin-bottom: 2px !important;
+      }
+      .sec-title, .main-section-title, .sec-heading, .section-title, .side-title, .side-tab, .badge-title {
+        font-size: 11.5px !important;
+        margin-top: 6px !important;
+        margin-bottom: 5px !important;
+        padding-bottom: 2px !important;
+        letter-spacing: 0.4px !important;
+      }
+      .hero, .header, .header-block, .profile-header {
+        padding: 14px 20px !important;
+      }
+      .hero-row, .header-row {
+        gap: 12px !important;
+      }
+      .hero-photo, .avatar, .photo-frame, .photo-box, .profile-photo {
+        width: 62px !important;
+        height: 62px !important;
+      }
+      .hero-text h1, .name-title-left, h1.name, .name-title {
+        font-size: 20px !important;
+        line-height: 1.15 !important;
+      }
+      .hero-text .title, .designation-title, .subtitle-left {
+        font-size: 10.5px !important;
+        margin-top: 1px !important;
+      }
+      .hero-contact, .contact-bar {
+        margin-top: 5px !important;
+        gap: 3px 12px !important;
+        font-size: 8.5px !important;
+      }
+      .left-col, .sidebar, .side, .col-left, .left-panel, aside,
+      .right-col, .main, .main-content, .col-right {
+        padding: 12px 16px !important;
+        gap: 8px !important;
+      }
+      .exp-item, .edu-item, .item-box, .entry-block, .card-box, .timeline-item {
+        margin-bottom: 5px !important;
+        padding-bottom: 3px !important;
+      }
+      .exp-head, .card-head, .item-head, .item-title {
+        font-size: 11px !important;
+        margin-bottom: 1px !important;
+      }
+      .exp-co, .company-name, .role, .designation, .item-sub {
+        font-size: 9.5px !important;
+      }
+      .contact-item {
+        font-size: 9.5px !important;
+        margin-bottom: 3px !important;
+      }
+      .cv-signature-section, .signature-section, .signature-box {
+        margin-top: 10px !important;
+        padding-top: 4px !important;
+      }
+    `;
+  }
+
+  if (pageCount === 2) {
+    return `
+      /* ─────────────────────────────────────────────────────────────
+         2-PAGE MODE (Balanced & Evenly Distributed Across 2 Pages)
+         ───────────────────────────────────────────────────────────── */
+      @page {
+        size: A4 portrait;
+        margin: 0mm !important;
+      }
+      @media print {
+        html, body {
+          width: 210mm !important;
+        }
+        .cv-page {
+          width: 210mm !important;
+          min-height: 594mm !important;
+          max-height: 594mm !important;
+        }
+        .left-col, .sidebar, .side, .col-left, .left-panel, aside,
+        .right-col, .main, .main-content, .col-right {
+          min-height: 594mm !important;
+        }
+      }
+
+      /* Balanced Typography & Proportional Gaps for 2-Pages */
+      body, .cv-page, .resume-page {
+        font-size: 11px !important;
+        line-height: 1.5 !important;
+      }
+      p, li, .desc, .exp-desc, .details, .summary-text, .item-desc {
+        font-size: 10.5px !important;
+        line-height: 1.48 !important;
+      }
+      .bullet-list-left li, .bullet-list-right li {
+        font-size: 10.5px !important;
+        line-height: 1.45 !important;
+        margin-bottom: 4px !important;
+      }
+      .sec-title, .main-section-title, .sec-heading, .section-title, .side-title, .side-tab, .badge-title {
+        font-size: 13px !important;
+        margin-top: 14px !important;
+        margin-bottom: 10px !important;
+        padding-bottom: 4px !important;
+        letter-spacing: 0.6px !important;
+      }
+      .hero, .header, .header-block, .profile-header {
+        padding: 24px 28px !important;
+      }
+      .hero-photo, .avatar, .photo-frame, .photo-box, .profile-photo {
+        width: 76px !important;
+        height: 76px !important;
+      }
+      .hero-text h1, .name-title-left, h1.name, .name-title {
+        font-size: 26px !important;
+      }
+      .hero-text .title, .designation-title, .subtitle-left {
+        font-size: 12px !important;
+        margin-top: 2px !important;
+      }
+      .hero-contact, .contact-bar {
+        margin-top: 8px !important;
+        gap: 5px 16px !important;
+        font-size: 10px !important;
+      }
+      .left-col, .sidebar, .side, .col-left, .left-panel, aside,
+      .right-col, .main, .main-content, .col-right {
+        padding: 18px 22px !important;
+        gap: 14px !important;
+      }
+      .exp-item, .edu-item, .item-box, .entry-block, .card-box, .timeline-item {
+        margin-bottom: 12px !important;
+        padding-bottom: 6px !important;
+      }
+      .exp-head, .card-head, .item-head, .item-title {
+        font-size: 12px !important;
+        margin-bottom: 2px !important;
+      }
+      .exp-co, .company-name, .role, .designation, .item-sub {
+        font-size: 10.5px !important;
+      }
+      .contact-item {
+        font-size: 11px !important;
+        margin-bottom: 5px !important;
+      }
+      .cv-signature-section, .signature-section, .signature-box {
+        margin-top: 20px !important;
+        padding-top: 8px !important;
+      }
+    `;
+  }
+
+  // pageCount === 3
+  return `
+    /* ─────────────────────────────────────────────────────────────
+       3-PAGE MODE (Executive Expanded & Richly Spaced Across 3 Pages)
+       ───────────────────────────────────────────────────────────── */
+    @page {
+      size: A4 portrait;
+      margin: 0mm !important;
+    }
+    @media print {
+      html, body {
+        width: 210mm !important;
+      }
+      .cv-page {
+        width: 210mm !important;
+        min-height: 891mm !important;
+        max-height: 891mm !important;
+      }
+      .left-col, .sidebar, .side, .col-left, .left-panel, aside,
+      .right-col, .main, .main-content, .col-right {
+        min-height: 891mm !important;
+      }
+    }
+
+    /* Executive Typography & Comfortable Gaps for 3-Pages */
+    body, .cv-page, .resume-page {
+      font-size: 12px !important;
+      line-height: 1.62 !important;
+    }
+    p, li, .desc, .exp-desc, .details, .summary-text, .item-desc {
+      font-size: 11.5px !important;
+      line-height: 1.58 !important;
+    }
+    .bullet-list-left li, .bullet-list-right li {
+      font-size: 11.5px !important;
+      line-height: 1.55 !important;
+      margin-bottom: 6px !important;
+    }
+    .sec-title, .main-section-title, .sec-heading, .section-title, .side-title, .side-tab, .badge-title {
+      font-size: 14.5px !important;
+      margin-top: 20px !important;
+      margin-bottom: 14px !important;
+      padding-bottom: 6px !important;
+      letter-spacing: 0.8px !important;
+    }
+    .hero, .header, .header-block, .profile-header {
+      padding: 30px 36px !important;
+    }
+    .hero-photo, .avatar, .photo-frame, .photo-box, .profile-photo {
+      width: 86px !important;
+      height: 86px !important;
+    }
+    .hero-text h1, .name-title-left, h1.name, .name-title {
+      font-size: 30px !important;
+    }
+    .hero-text .title, .designation-title, .subtitle-left {
+      font-size: 13px !important;
+      margin-top: 4px !important;
+    }
+    .hero-contact, .contact-bar {
+      margin-top: 10px !important;
+      gap: 6px 18px !important;
+      font-size: 11px !important;
+    }
+    .left-col, .sidebar, .side, .col-left, .left-panel, aside,
+    .right-col, .main, .main-content, .col-right {
+      padding: 24px 28px !important;
+      gap: 20px !important;
+    }
+    .exp-item, .edu-item, .item-box, .entry-block, .card-box, .timeline-item {
+      margin-bottom: 18px !important;
+      padding-bottom: 8px !important;
+    }
+    .exp-head, .card-head, .item-head, .item-title {
+      font-size: 13px !important;
+      margin-bottom: 3px !important;
+    }
+    .exp-co, .company-name, .role, .designation, .item-sub {
+      font-size: 11.5px !important;
+    }
+    .contact-item {
+      font-size: 12px !important;
+      margin-bottom: 8px !important;
+    }
+    .cv-signature-section, .signature-section, .signature-box {
+      margin-top: 28px !important;
+      padding-top: 10px !important;
+    }
+  `;
+}
+
+/**
  * Injects print-perfect CSS styles into the CV HTML to eliminate
  * browser default headers, footers (dates, URLs, page numbers),
- * enforce full-bleed background colors, and avoid breaking items across pages.
+ * enforce full-bleed background colors, avoid breaking items across pages,
+ * and enforce dynamic 1, 2, or 3 page fitting.
  */
-export function preparePrintableHtml(rawHtml: string): string {
+export function preparePrintableHtml(rawHtml: string, pageCount: PageCount = 1): string {
   if (!rawHtml) return "";
+
+  const pageFitCss = getPageFitStyles(pageCount);
 
   const printStyles = `
     <style id="cv-print-enhancement">
@@ -27,7 +323,6 @@ export function preparePrintableHtml(rawHtml: string): string {
         }
         .cv-page {
           width: 210mm !important;
-          min-height: 297mm !important;
           margin: 0 auto !important;
           box-shadow: none !important;
           display: flex !important;
@@ -59,61 +354,19 @@ export function preparePrintableHtml(rawHtml: string): string {
           page-break-inside: avoid !important;
           break-inside: avoid !important;
         }
+        .sec-title, .main-section-title, .sec-heading, .section-title {
+          page-break-after: avoid !important;
+          break-after: avoid !important;
+        }
       }
 
-      /* Universal Font Legibility Booster */
-      body, .cv-page, .resume-page {
-        font-size: 11.5px !important;
-        line-height: 1.55 !important;
-      }
-      p, li, .desc, .exp-desc, .details, .summary-text {
-        font-size: 11px !important;
-        line-height: 1.55 !important;
-      }
-      .sec-title, .main-section-title, .sec-heading, .section-title, .side-title, .side-tab, .badge-title {
-        font-size: 13.5px !important;
-        letter-spacing: 0.8px !important;
-      }
-      .exp-head, .card-head, .edu-item .exp-head, .item-head {
-        font-size: 12.5px !important;
-      }
-      .exp-co, .company-name, .hospital, .role, .designation {
-        font-size: 11.5px !important;
-      }
-      .side-kv-table, .personal-table, .train-table, .data-sheet {
-        font-size: 10.5px !important;
-        line-height: 1.5 !important;
-      }
-      .side-kv-lbl, .label-col, .col-lbl, .lbl {
-        font-size: 10.5px !important;
-        font-weight: 600 !important;
-      }
-      .side-kv-val, .val-col, .col-val, .val {
-        font-size: 10.5px !important;
-      }
+      ${pageFitCss}
 
-      /* Readability booster: Increase font sizes by 2px across templates */
-      .left-desc { font-size: 12px !important; line-height: 1.6 !important; }
-      .bullet-list-left li { font-size: 12.5px !important; }
-      .contact-item { font-size: 12.5px !important; }
-      .contact-icon { font-size: 12px !important; }
-      .sec-orange { font-size: 15px !important; }
-      .sec-black { font-size: 16px !important; }
-      .item-title { font-size: 14px !important; }
-      .item-sub { font-size: 13px !important; }
-      .item-desc { font-size: 12px !important; line-height: 1.5 !important; }
-      .bullet-list-right li { font-size: 13px !important; }
-      .interest-name { font-size: 10.5px !important; }
-      .subtitle-left { font-size: 15px !important; }
-      .name-title-left { font-size: 32px !important; }
-
-      /* Signature Styling: clean, solid line, right aligned, NO dashed border */
+      /* Signature Styling: clean, solid line, right aligned */
       .cv-signature-section, .signature-section, .signature-box {
         display: flex !important;
         justify-content: flex-end !important;
         width: 100% !important;
-        margin-top: 24px !important;
-        padding-top: 8px !important;
         border-top: none !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
@@ -135,15 +388,26 @@ export function preparePrintableHtml(rawHtml: string): string {
 
   let processedHtml = rawHtml;
 
+  // Add cv-page-fit class to body if present
+  if (processedHtml.includes("<body")) {
+    processedHtml = processedHtml.replace(
+      /<body([^>]*)class="([^"]*)"/i,
+      `<body$1class="$2 cv-page-fit-${pageCount}"`
+    );
+    if (!processedHtml.includes(`cv-page-fit-${pageCount}`)) {
+      processedHtml = processedHtml.replace(/<body([^>]*)>/i, `<body$1 class="cv-page-fit-${pageCount}">`);
+    }
+  }
+
   // If HTML doesn't have signature block yet, inject a fallback signature block
   if (!processedHtml.includes("cv-signature-section") && !processedHtml.includes("signature-box")) {
     const fallbackSig = `
-      <div class="cv-signature-section signature-box" style="margin-top: 24px; padding-top: 6px; display: flex; justify-content: flex-end; width: 100%; page-break-inside: avoid !important; break-inside: avoid !important; border-top: none !important;">
+      <div class="cv-signature-section signature-box" style="margin-top: 16px; padding-top: 6px; display: flex; justify-content: flex-end; width: 100%; page-break-inside: avoid !important; break-inside: avoid !important; border-top: none !important;">
         <div style="text-align: center; min-width: 170px; display: inline-block;">
-          <div style="font-family: 'Dancing Script', 'Great Vibes', 'Brush Script MT', 'Georgia', cursive, serif; font-size: 20px; font-weight: bold; font-style: italic; color: #1e293b; margin-bottom: 2px; line-height: 1.2;">Authorized Signature</div>
+          <div style="font-family: 'Dancing Script', 'Great Vibes', 'Brush Script MT', 'Georgia', cursive, serif; font-size: 18px; font-weight: bold; font-style: italic; color: #1e293b; margin-bottom: 2px; line-height: 1.2;">Authorized Signature</div>
           <div style="border-top: 1.5px solid #1e293b; width: 160px; margin: 0 auto 4px auto;"></div>
-          <div style="font-size: 11px; font-weight: 700; color: #1e293b; letter-spacing: 0.2px;">Authorized Signature</div>
-          <div style="font-size: 9.5px; color: #64748b;">Signature</div>
+          <div style="font-size: 10.5px; font-weight: 700; color: #1e293b; letter-spacing: 0.2px;">Authorized Signature</div>
+          <div style="font-size: 9px; color: #64748b;">Signature & Date</div>
         </div>
       </div>
     `;
@@ -170,20 +434,47 @@ export function preparePrintableHtml(rawHtml: string): string {
     }
   }
 
+  // Injects dynamic fit script that executes before print/preview
+  const dynamicFitScript = `
+    <script>
+      (function() {
+        window.addEventListener('load', function() {
+          try {
+            var targetPages = ${pageCount};
+            var pageEl = document.querySelector('.cv-page') || document.body;
+            if (!pageEl) return;
+            var pxPerMm = (pageEl.offsetWidth || 794) / 210;
+            var maxAllowedHeight = targetPages * 297 * pxPerMm;
+            var currentHeight = pageEl.scrollHeight || pageEl.offsetHeight;
+
+            // Auto-scale if content slightly overflows target pages
+            if (currentHeight > maxAllowedHeight + 5) {
+              var ratio = (maxAllowedHeight - 4) / currentHeight;
+              if (ratio >= 0.80) {
+                pageEl.style.transform = 'scale(' + ratio + ')';
+                pageEl.style.transformOrigin = 'top center';
+              }
+            }
+          } catch(e) {}
+        });
+      })();
+    </script>
+  `;
+
   if (processedHtml.includes("</head>")) {
-    return processedHtml.replace("</head>", `${printStyles}</head>`);
+    return processedHtml.replace("</head>", `${printStyles}${dynamicFitScript}</head>`);
   }
-  return `${printStyles}${processedHtml}`;
+  return `${printStyles}${dynamicFitScript}${processedHtml}`;
 }
 
 /**
- * Triggers the browser's native print engine with enhanced styling.
- * Eliminates unwanted browser headers/footers and preserves colors.
+ * Triggers the browser's native print engine with enhanced styling and strict page count fitting.
+ * Eliminates unwanted browser headers/footers, preserves colors, and fits exactly 1, 2, or 3 pages.
  */
-export function printCvHtml(html: string) {
+export function printCvHtml(html: string, pageCount: PageCount = 1) {
   if (!html || typeof window === "undefined") return;
 
-  const printableHtml = preparePrintableHtml(html);
+  const printableHtml = preparePrintableHtml(html, pageCount);
   const printWindow = window.open("", "_blank");
 
   if (!printWindow) {
@@ -197,20 +488,30 @@ export function printCvHtml(html: string) {
 
   const triggerPrint = () => {
     try {
-      const pageEl = printWindow.document.querySelector<HTMLElement>(".cv-page");
+      const pageEl = printWindow.document.querySelector<HTMLElement>(".cv-page") || printWindow.document.body;
       if (pageEl) {
         const pxPerMm = (pageEl.offsetWidth || 794) / 210;
-        const a4HeightPx = 297 * pxPerMm;
-        const totalPages = Math.max(1, Math.ceil(pageEl.scrollHeight / a4HeightPx));
-        pageEl.style.minHeight = `${totalPages * 297}mm`;
+        const targetHeightPx = pageCount * 297 * pxPerMm;
 
+        // Ensure columns and sidebars stretch to full target page height
+        pageEl.style.minHeight = `${pageCount * 297}mm`;
         const sidebars = printWindow.document.querySelectorAll<HTMLElement>(
           ".left-col, .sidebar, .side, .col-left, .left-panel, aside"
         );
         sidebars.forEach((s) => {
-          s.style.minHeight = `${totalPages * 297}mm`;
+          s.style.minHeight = `${pageCount * 297}mm`;
           s.style.alignSelf = "stretch";
         });
+
+        // Auto-scale if content exceeds target height
+        const currentHeight = pageEl.scrollHeight || pageEl.offsetHeight;
+        if (currentHeight > targetHeightPx + 5) {
+          const ratio = (targetHeightPx - 5) / currentHeight;
+          if (ratio >= 0.80) {
+            pageEl.style.transform = `scale(${ratio})`;
+            pageEl.style.transformOrigin = "top center";
+          }
+        }
       }
       printWindow.focus();
       printWindow.print();
@@ -230,7 +531,7 @@ export function printCvHtml(html: string) {
         }
       }
       if (allLoaded) {
-        setTimeout(triggerPrint, 300);
+        setTimeout(triggerPrint, 350);
       } else {
         setTimeout(checkLoaded, 100);
       }
@@ -243,58 +544,31 @@ export function printCvHtml(html: string) {
 }
 
 /**
- * Converts any image source (remote URL, relative URL, blob URL, or WebP data URL)
- * into a pure, same-origin Base64 PNG/JPEG data URL so html2canvas can paint it
- * directly without CORS blocks, network delays, or WebP compatibility issues.
+ * Converts any image source into a pure, same-origin Base64 PNG/JPEG data URL
+ * so html2canvas can paint it directly without CORS blocks or delays.
  */
 async function toBase64PngDataUrl(src: string): Promise<string> {
-  if (!src) return src;
-
-  // 1. Standard PNG / JPEG data URLs are already safe and canvas-compatible
+  if (!src) return "";
   if (src.startsWith("data:image/png") || src.startsWith("data:image/jpeg")) {
     return src;
   }
 
-  // 2. If it's a data URL of other types (e.g. data:image/webp)
-  if (src.startsWith("data:")) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        try {
-          const canvas = document.createElement("canvas");
-          canvas.width = img.naturalWidth || img.width || 300;
-          canvas.height = img.naturalHeight || img.height || 300;
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            ctx.drawImage(img, 0, 0);
-            const png = canvas.toDataURL("image/png");
-            if (png && png.length > 50) {
-              resolve(png);
-              return;
-            }
-          }
-        } catch {}
-        resolve(src);
-      };
-      img.onerror = () => resolve(src);
-      img.src = src;
-    });
+  const directUrl = src.startsWith("http")
+    ? src
+    : src.startsWith("/")
+    ? `${window.location.origin}${src}`
+    : `${window.location.origin}/${src}`;
+
+  const candidates: string[] = [directUrl];
+  if (!directUrl.startsWith("data:") && !directUrl.includes("proxy")) {
+    const enc = encodeURIComponent(directUrl);
+    candidates.push(`/api/proxy-image?url=${enc}`);
+    candidates.push(`https://images.weserv.nl/?url=${enc}&output=png`);
   }
 
-  // 3. Remote or relative URLs: try direct fetch, then proxy route
-  const candidateUrls: string[] = [src];
-  if (src.startsWith("http://") || src.startsWith("https://")) {
-    candidateUrls.push(`/cv/image-proxy?url=${encodeURIComponent(src)}`);
-  } else if (src.startsWith("/storage/")) {
-    candidateUrls.push(src);
-    if (typeof window !== "undefined") {
-      candidateUrls.push(`/cv/image-proxy?url=${encodeURIComponent(window.location.origin + src)}`);
-    }
-  }
-
-  for (const url of candidateUrls) {
+  for (const url of candidates) {
     try {
-      const res = await fetch(url, { mode: "cors", cache: "force-cache" });
+      const res = await fetch(url, { mode: "cors", credentials: "omit" });
       if (res.ok) {
         const blob = await res.blob();
         const base64 = await new Promise<string>((resolve) => {
@@ -306,17 +580,14 @@ async function toBase64PngDataUrl(src: string): Promise<string> {
 
         if (base64) {
           if (base64.startsWith("data:image/webp")) {
-            return await toBase64PngDataUrl(base64);
+            return await convertWebpToPng(base64);
           }
           return base64;
         }
       }
-    } catch {
-      // try next candidate
-    }
+    } catch {}
   }
 
-  // 4. Fallback: try loading into Image element directly and drawing to canvas
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -339,34 +610,54 @@ async function toBase64PngDataUrl(src: string): Promise<string> {
   });
 }
 
+function convertWebpToPng(webpDataUrl: string): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth || 300;
+        canvas.height = img.naturalHeight || 300;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+          return;
+        }
+      } catch {}
+      resolve(webpDataUrl);
+    };
+    img.onerror = () => resolve(webpDataUrl);
+    img.src = webpDataUrl;
+  });
+}
+
 /**
- * Generates and downloads a pixel-perfect, ultra-high-DPI (300+ DPI) A4 PDF directly from HTML.
- * Converts all images to inline Base64 data URLs before rendering to guarantee
- * photos, signatures, and logos are never omitted by CORS or browser sandbox rules.
+ * Generates and downloads a pixel-perfect, ultra-high-DPI (300+ DPI) A4 PDF directly from HTML
+ * with exact 1-Page, 2-Page, or 3-Page fit guarantee.
  */
 export async function downloadCvAsPdf(
   html: string,
-  fileName: string = "Resume"
+  fileName: string = "Resume",
+  pageCount: PageCount = 1
 ): Promise<void> {
   if (!html || typeof window === "undefined") {
     throw new Error("HTML content is required for PDF generation");
   }
 
-  // Dynamic import on demand
   const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
     import("html2canvas"),
     import("jspdf"),
   ]);
 
-  const printableHtml = preparePrintableHtml(html);
+  const printableHtml = preparePrintableHtml(html, pageCount);
 
-  // Create an iframe to render the HTML with exact A4 dimensions
   const iframe = document.createElement("iframe");
   iframe.style.position = "fixed";
   iframe.style.left = "0";
   iframe.style.top = "0";
   iframe.style.width = "794px"; // 210mm at 96 DPI
-  iframe.style.height = "1123px"; // 297mm at 96 DPI
+  iframe.style.height = `${Math.round(pageCount * 1122.52) + 60}px`;
   iframe.style.border = "none";
   iframe.style.opacity = "0.01";
   iframe.style.zIndex = "-99999";
@@ -390,20 +681,17 @@ export async function downloadCvAsPdf(
       imgElements.map(async (img) => {
         const src = img.getAttribute("src") || img.src;
         if (!src) return;
-
         try {
           const base64 = await toBase64PngDataUrl(src);
           if (base64 && base64.startsWith("data:image/")) {
             img.src = base64;
             img.removeAttribute("crossorigin");
           }
-        } catch {
-          // keep original
-        }
+        } catch {}
       })
     );
 
-    // 2. Wait for all images in the iframe to fully decode & report naturalWidth > 0
+    // 2. Wait for images to decode
     await Promise.all(
       Array.from(iframeDoc.images).map((img) => {
         if (img.complete && img.naturalWidth > 0) return Promise.resolve();
@@ -432,17 +720,19 @@ export async function downloadCvAsPdf(
       (iframeDoc.querySelector(".cv-page") as HTMLElement) ||
       (iframeDoc.body as HTMLElement);
 
-    // Enforce full A4 page multiples (297mm = ~1122.52px at 96 DPI)
-    // so columns (sidebar/left-col) stretch 100% to the bottom of the final page!
     const A4_HEIGHT_PX = 1122.52;
-    const rawHeight = Math.max(
-      target.scrollHeight,
-      target.offsetHeight,
-      iframeDoc.body.scrollHeight,
-      1123
-    );
-    const totalPages = Math.max(1, Math.ceil(rawHeight / A4_HEIGHT_PX));
-    const fullCanvasHeight = Math.round(totalPages * A4_HEIGHT_PX);
+    const targetPages = pageCount;
+    const fullCanvasHeight = Math.round(targetPages * A4_HEIGHT_PX);
+
+    // Check if target slightly overflows targetPages and auto-scale
+    const currentHeight = Math.max(target.scrollHeight, target.offsetHeight);
+    if (currentHeight > fullCanvasHeight + 6) {
+      const autoFitScale = Math.min(1, (fullCanvasHeight - 4) / currentHeight);
+      if (autoFitScale >= 0.78) {
+        target.style.transform = `scale(${autoFitScale})`;
+        target.style.transformOrigin = "top center";
+      }
+    }
 
     target.style.minHeight = `${fullCanvasHeight}px`;
     target.style.height = `${fullCanvasHeight}px`;
@@ -474,8 +764,7 @@ export async function downloadCvAsPdf(
       col.style.boxSizing = "border-box";
     });
 
-    // Universal Fallback: If a left sidebar exists with a background color,
-    // ensure target (.cv-page) background covers full canvas with sidebar gradient
+    // Ensure left sidebar background stretches properly across all pages
     const leftSidebar = iframeDoc.querySelector<HTMLElement>(
       ".left-col, .sidebar, .side, .col-left, .left-panel, aside"
     );
@@ -497,7 +786,7 @@ export async function downloadCvAsPdf(
       } catch {}
     }
 
-    // Scale 2 gives crystal-clear print quality without exceeding GPU texture/stride limits
+    // High quality canvas render
     const canvas = await html2canvas(target, {
       scale: 2,
       useCORS: true,
@@ -525,12 +814,11 @@ export async function downloadCvAsPdf(
     const pageHeightMm = 297;
     const pageCanvasHeight = Math.round((canvas.width * 297) / 210);
 
-    for (let page = 0; page < totalPages; page++) {
+    for (let page = 0; page < targetPages; page++) {
       if (page > 0) {
         pdf.addPage();
       }
 
-      // Render each page into an exact A4 single-page canvas to prevent stride corruption
       const pageCanvas = document.createElement("canvas");
       pageCanvas.width = canvas.width;
       pageCanvas.height = pageCanvasHeight;

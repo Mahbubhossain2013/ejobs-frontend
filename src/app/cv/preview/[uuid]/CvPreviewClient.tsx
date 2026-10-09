@@ -10,7 +10,8 @@ import {
   ArrowLeft, Download, Share2, LinkIcon, Loader2,
   Lock, Globe, Printer,
 } from "lucide-react";
-import { printCvHtml, downloadCvAsPdf } from "@/lib/cv-pdf-generator";
+import { printCvHtml, downloadCvAsPdf, preparePrintableHtml } from "@/lib/cv-pdf-generator";
+import PageCountSelector, { PageCount } from "@/components/cv/PageCountSelector";
 
 const A4_WIDTH_PX = 794;
 const A4_HEIGHT_PX = Math.round(A4_WIDTH_PX * 1.414);
@@ -23,6 +24,8 @@ export default function CvPreviewClient() {
   const isBn = language === "bn";
 
   const [html, setHtml] = useState<string>("");
+  const [pageCount, setPageCount] = useState<PageCount>(1);
+  const [resumeTitle, setResumeTitle] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
@@ -54,6 +57,13 @@ export default function CvPreviewClient() {
       .then(async (resume: any) => {
         setIsPublic(!!resume.is_public);
         setShareToken(resume.share_token || null);
+        if (resume.title) setResumeTitle(resume.title);
+        if (resume.data_snapshot?.page_count) {
+          const pc = Number(resume.data_snapshot.page_count);
+          if (pc === 1 || pc === 2 || pc === 3) {
+            setPageCount(pc as PageCount);
+          }
+        }
 
         const slug = resume.template_slug;
         if (!slug) throw new Error("No template assigned to this resume");
@@ -107,7 +117,8 @@ export default function CvPreviewClient() {
     setDownloading(true);
     try {
       if (html) {
-        await downloadCvAsPdf(html, `resume-${uuid}`);
+        const fileName = resumeTitle ? `${resumeTitle}-${uuid}` : `resume-${uuid}`;
+        await downloadCvAsPdf(html, fileName, pageCount);
         toast.success(isBn ? "🎉 PDF ডাউনলোড সম্পন্ন হয়েছে!" : "🎉 PDF downloaded successfully!");
         return;
       }
@@ -126,7 +137,7 @@ export default function CvPreviewClient() {
       toast.success(isBn ? "PDF ডাউনলোড সম্পন্ন হয়েছে" : "PDF download complete");
     } catch (err: any) {
       if (html) {
-        printCvHtml(html);
+        printCvHtml(html, pageCount);
         toast.info(
           isBn
             ? "প্রিন্ট ডায়ালগ থেকে 'Save as PDF' নির্বাচন করে সেভ করুন।"
@@ -142,7 +153,7 @@ export default function CvPreviewClient() {
 
   const handlePrint = () => {
     if (!html) return;
-    printCvHtml(html);
+    printCvHtml(html, pageCount);
   };
 
   const handleShareToggle = async () => {
@@ -220,12 +231,17 @@ export default function CvPreviewClient() {
               {isPublic ? (isBn ? "পাবলিক" : "Public") : (isBn ? "এই সিভি প্রাইভেট" : "This resume is private")}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <Button variant="default" size="sm" onClick={handlePrint} className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+          <div className="flex items-center gap-2 flex-wrap">
+            <PageCountSelector
+              compact
+              pageCount={pageCount}
+              onChange={(newCount) => setPageCount(newCount)}
+            />
+            <Button variant="default" size="sm" onClick={handlePrint} className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm">
               <Printer className="h-4 w-4" />
               {isBn ? "প্রিন্ট করুন" : "Print"}
             </Button>
-            <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={downloading}>
+            <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={downloading} className="gap-1.5">
               {downloading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Download className="h-4 w-4 mr-1" />}
               {isBn ? "PDF ডাউনলোড" : "Download PDF"}
             </Button>
@@ -245,17 +261,17 @@ export default function CvPreviewClient() {
       <div className="mx-auto px-0 md:px-4 py-0 md:py-4">
         <div
           ref={wrapperRef}
-          className="mx-auto bg-white shadow-lg md:rounded-lg overflow-hidden"
+          className="mx-auto bg-white shadow-lg md:rounded-lg overflow-hidden relative"
           style={{ maxWidth: "210mm", width: "100%" }}
         >
-          <div style={{ height: `${A4_HEIGHT_PX * scale}px`, overflow: "hidden", position: "relative" }}>
+          <div style={{ height: `${A4_HEIGHT_PX * pageCount * scale}px`, overflow: "hidden", position: "relative" }}>
             <iframe
-              srcDoc={html}
+              srcDoc={preparePrintableHtml(html, pageCount)}
               title="CV Preview"
-              sandbox="allow-same-origin"
+              sandbox="allow-same-origin allow-scripts allow-modals"
               style={{
                 width: `${A4_WIDTH_PX}px`,
-                height: `${A4_HEIGHT_PX}px`,
+                height: `${A4_HEIGHT_PX * pageCount}px`,
                 border: "none",
                 transform: `scale(${scale})`,
                 transformOrigin: "top left",
@@ -264,6 +280,33 @@ export default function CvPreviewClient() {
                 left: 0,
               }}
             />
+
+            {/* Visual Page Break Lines */}
+            {pageCount >= 2 && (
+              <div
+                style={{ top: `${A4_HEIGHT_PX * scale}px` }}
+                className="absolute left-0 right-0 z-20 pointer-events-none flex items-center justify-center -translate-y-1/2"
+              >
+                <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+                <span className="shrink-0 px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full shadow-lg">
+                  {isBn ? "── পৃষ্ঠা ১ সমাপ্ত / পৃষ্ঠা ২ শুরু ──" : "── Page 1 End / Page 2 Start ──"}
+                </span>
+                <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+              </div>
+            )}
+
+            {pageCount === 3 && (
+              <div
+                style={{ top: `${A4_HEIGHT_PX * 2 * scale}px` }}
+                className="absolute left-0 right-0 z-20 pointer-events-none flex items-center justify-center -translate-y-1/2"
+              >
+                <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+                <span className="shrink-0 px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full shadow-lg">
+                  {isBn ? "── পৃষ্ঠা ২ সমাপ্ত / পৃষ্ঠা ৩ শুরু ──" : "── Page 2 End / Page 3 Start ──"}
+                </span>
+                <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+              </div>
+            )}
           </div>
         </div>
       </div>

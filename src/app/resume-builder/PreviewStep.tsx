@@ -33,7 +33,8 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import type { CvTemplate } from "@/types";
-import { printCvHtml, downloadCvAsPdf } from "@/lib/cv-pdf-generator";
+import { printCvHtml, downloadCvAsPdf, preparePrintableHtml } from "@/lib/cv-pdf-generator";
+import PageCountSelector, { PageCount } from "@/components/cv/PageCountSelector";
 
 const A4_WIDTH_PX = 794;
 const A4_HEIGHT_PX = Math.round(A4_WIDTH_PX * 1.414);
@@ -56,6 +57,8 @@ export default function PreviewStep({
     data.template_slug || "modern-twocol"
   );
   const currentTemplate = templates.find((t) => t.slug === selectedSlug);
+
+  const [pageCount, setPageCount] = useState<PageCount>((data.page_count as PageCount) || 1);
 
   const [isEditing, setIsEditing] = useState(false);
   useEffect(() => {
@@ -147,6 +150,9 @@ export default function PreviewStep({
       awards: (d.achievements || [])
         .filter((a) => a.description?.trim())
         .map((a) => ({ name: a.description })),
+      achievements: (d.achievements || [])
+        .filter((a) => a.description?.trim())
+        .map((a) => ({ name: a.description, description: a.description })),
       projects: (d.projects || [])
         .filter((p) => p.name?.trim())
         .map((p) => ({
@@ -155,6 +161,7 @@ export default function PreviewStep({
           url: p.url,
         })),
       hobbies: (d.interests || []).map((i) => i.hobby),
+      interests: (d.interests || []).map((i) => i.hobby),
       references: (d.references || [])
         .filter((r) => r.name?.trim())
         .map((r) => ({
@@ -172,13 +179,20 @@ export default function PreviewStep({
           institute: t.institute,
           duration: t.duration,
         })),
+      custom_sections: (d.custom_sections || [])
+        .filter((c) => c.title?.trim() || c.description?.trim())
+        .map((c) => ({
+          title: c.title?.trim() || "Additional Section",
+          description: c.description || "",
+        })),
       social_links: {
         linkedin: d.personal.linkedin,
         github: d.personal.github,
         portfolio: d.personal.website,
       },
+      page_count: pageCount,
     };
-  }, []); // stable - reads from dataRef
+  }, [pageCount]);
 
   const saveToLocalHistory = useCallback((uuid: string, customTitle?: string, id?: number) => {
     try {
@@ -387,7 +401,7 @@ export default function PreviewStep({
       // ignore
     }
 
-    printCvHtml(previewHtml);
+    printCvHtml(previewHtml, pageCount);
   };
 
   const handleDownloadPdf = async () => {
@@ -435,13 +449,13 @@ export default function PreviewStep({
       "My_CV";
 
     try {
-      await downloadCvAsPdf(previewHtml, candidateName);
+      await downloadCvAsPdf(previewHtml, candidateName, pageCount);
       toast.success(
         isBn ? "🎉 PDF সফলভাবে ডাউনলোড হয়েছে!" : "🎉 PDF downloaded successfully!"
       );
     } catch (err: any) {
       console.warn("Direct PDF render failed, falling back to print dialog:", err);
-      printCvHtml(previewHtml);
+      printCvHtml(previewHtml, pageCount);
       toast.info(
         isBn
           ? "প্রিন্ট ডায়ালগ থেকে 'Save as PDF' নির্বাচন করে সেভ করুন।"
@@ -636,6 +650,18 @@ export default function PreviewStep({
         </div>
       </div>
 
+      {/* ── Page Count Selector (১ পেজ, ২ পেজ, ৩ পেজ) ── */}
+      <div className="bg-card p-4 sm:p-5 rounded-2xl border-2 shadow-sm">
+        <PageCountSelector
+          pageCount={pageCount}
+          onChange={(newCount) => {
+            setPageCount(newCount);
+            setSectionData("page_count", newCount);
+          }}
+          isBn={isBn}
+        />
+      </div>
+
       <div className="bg-muted/40 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Palette className="w-4 h-4 text-primary shrink-0" />
@@ -712,18 +738,18 @@ export default function PreviewStep({
               >
                 <div
                   style={{
-                    height: `${A4_HEIGHT_PX * scale}px`,
+                    height: `${A4_HEIGHT_PX * pageCount * scale}px`,
                     overflow: "hidden",
                     position: "relative",
                   }}
                 >
                   <iframe
-                    srcDoc={previewHtml}
+                    srcDoc={preparePrintableHtml(previewHtml, pageCount)}
                     title="Live CV Preview"
                     sandbox="allow-same-origin allow-scripts allow-modals"
                     style={{
                       width: `${A4_WIDTH_PX}px`,
-                      height: `${A4_HEIGHT_PX}px`,
+                      height: `${A4_HEIGHT_PX * pageCount}px`,
                       border: "none",
                       transform: `scale(${scale})`,
                       transformOrigin: "top left",
@@ -732,6 +758,33 @@ export default function PreviewStep({
                       left: 0,
                     }}
                   />
+
+                  {/* Visual Page Break Lines for Multi-page CVs */}
+                  {pageCount >= 2 && (
+                    <div
+                      style={{ top: `${A4_HEIGHT_PX * scale}px` }}
+                      className="absolute left-0 right-0 z-20 pointer-events-none flex items-center justify-center -translate-y-1/2"
+                    >
+                      <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+                      <span className="shrink-0 px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full shadow-lg">
+                        {isBn ? "── পৃষ্ঠা ১ সমাপ্ত / পৃষ্ঠা ২ শুরু ──" : "── Page 1 End / Page 2 Start ──"}
+                      </span>
+                      <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+                    </div>
+                  )}
+
+                  {pageCount === 3 && (
+                    <div
+                      style={{ top: `${A4_HEIGHT_PX * 2 * scale}px` }}
+                      className="absolute left-0 right-0 z-20 pointer-events-none flex items-center justify-center -translate-y-1/2"
+                    >
+                      <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+                      <span className="shrink-0 px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full shadow-lg">
+                        {isBn ? "── পৃষ্ঠা ২ সমাপ্ত / পৃষ্ঠা ৩ শুরু ──" : "── Page 2 End / Page 3 Start ──"}
+                      </span>
+                      <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -812,7 +865,41 @@ export default function PreviewStep({
               : "Your custom CV is ready. Download it as PDF or print directly."}
           </p>
 
-          <div className="flex flex-col gap-3 mt-6">
+          {/* Dynamic Page Count Selector in Post-Submit Modal */}
+          <div className="my-4 p-3 bg-muted/50 rounded-xl border border-muted text-left">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-foreground">
+                {isBn ? "সিভির পৃষ্ঠা সংখ্যা (Page Count):" : "CV Page Count:"}
+              </span>
+              <span className="text-xs font-bold text-primary">
+                {pageCount === 1
+                  ? isBn ? "১ পেজ (কম্প্যাক্ট)" : "1 Page (Compact)"
+                  : pageCount === 2
+                  ? isBn ? "২ পেজ (ব্যালান্সড)" : "2 Pages (Balanced)"
+                  : isBn ? "৩ পেজ (এক্সিকিউটিভ)" : "3 Pages (Executive)"}
+              </span>
+            </div>
+            <PageCountSelector
+              compact
+              pageCount={pageCount}
+              onChange={(newCount) => setPageCount(newCount)}
+            />
+            <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
+              {pageCount === 1
+                ? isBn
+                  ? "✓ সব তথ্য নিখুঁতভাবে ১টি A4 পৃষ্ঠায় অটো-ফিট হয়ে প্রিন্ট ও ডাউনলোড হবে।"
+                  : "✓ All details automatically fit cleanly onto 1 A4 page with zero overflow."
+                : pageCount === 2
+                ? isBn
+                  ? "✓ তথ্যগুলো সুষমভাবে ২ পৃষ্ঠায় বিন্যস্ত হবে, কোথাও ফাঁকা গ্যাপ থাকবে না।"
+                  : "✓ Balanced across 2 pages without awkward blank gaps."
+                : isBn
+                  ? "✓ ৩টি পৃষ্ঠায় চমৎকার নির্বাহী স্পেসিং ও বিন্যাসে ফিট হবে।"
+                  : "✓ Executive spacing beautifully distributed across 3 pages."}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 mt-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Button
                 size="lg"
@@ -853,14 +940,19 @@ export default function PreviewStep({
       {/* Fullscreen Preview Modal */}
       <Dialog open={fullModalOpen} onOpenChange={setFullModalOpen}>
         <DialogContent className="max-w-6xl w-[95vw] h-[92vh] flex flex-col p-0 overflow-hidden bg-slate-900 text-white">
-          <DialogHeader className="p-4 bg-slate-950 border-b border-slate-800 flex flex-row items-center justify-between shrink-0">
+          <DialogHeader className="p-4 bg-slate-950 border-b border-slate-800 flex flex-row items-center justify-between shrink-0 flex-wrap gap-2">
             <div>
               <DialogTitle className="text-white text-lg font-bold">
                 {currentTemplate?.name || "CV"} -{" "}
                 {isBn ? "সম্পূর্ণ প্রিভিউ" : "Full Resolution Preview"}
               </DialogTitle>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <PageCountSelector
+                compact
+                pageCount={pageCount}
+                onChange={(newCount) => setPageCount(newCount)}
+              />
               <Button
                 size="sm"
                 variant="outline"
@@ -883,12 +975,43 @@ export default function PreviewStep({
           </DialogHeader>
 
           <div className="flex-1 overflow-auto p-6 flex justify-center bg-slate-900">
-            <div className="shadow-2xl rounded-lg overflow-hidden bg-white max-w-full">
+            <div
+              className="shadow-2xl rounded-lg overflow-hidden bg-white max-w-full relative"
+              style={{ width: `${A4_WIDTH_PX}px`, minHeight: `${A4_HEIGHT_PX * pageCount}px` }}
+            >
               <iframe
-                srcDoc={previewHtml}
+                srcDoc={preparePrintableHtml(previewHtml, pageCount)}
                 title="Full Preview"
-                className="w-[794px] h-[1123px] max-w-full border-0"
+                className="w-[794px] max-w-full border-0"
+                style={{ height: `${A4_HEIGHT_PX * pageCount}px` }}
               />
+
+              {/* Visual Page Break Lines in Fullscreen */}
+              {pageCount >= 2 && (
+                <div
+                  style={{ top: `${A4_HEIGHT_PX}px` }}
+                  className="absolute left-0 right-0 z-20 pointer-events-none flex items-center justify-center -translate-y-1/2"
+                >
+                  <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+                  <span className="shrink-0 px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full shadow-lg">
+                    {isBn ? "── পৃষ্ঠা ১ সমাপ্ত / পৃষ্ঠা ২ শুরু ──" : "── Page 1 End / Page 2 Start ──"}
+                  </span>
+                  <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+                </div>
+              )}
+
+              {pageCount === 3 && (
+                <div
+                  style={{ top: `${A4_HEIGHT_PX * 2}px` }}
+                  className="absolute left-0 right-0 z-20 pointer-events-none flex items-center justify-center -translate-y-1/2"
+                >
+                  <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+                  <span className="shrink-0 px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full shadow-lg">
+                    {isBn ? "── পৃষ্ঠা ২ সমাপ্ত / পৃষ্ঠা ৩ শুরু ──" : "── Page 2 End / Page 3 Start ──"}
+                  </span>
+                  <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>

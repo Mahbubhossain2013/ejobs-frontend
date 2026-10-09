@@ -125,6 +125,7 @@ export interface ResumeData {
   certifications: Certification[];
   projects: Project[];
   template_slug: string | null;
+  page_count?: 1 | 2 | 3;
 }
 
 const EMPTY_PERSONAL: Personal = {
@@ -166,6 +167,7 @@ export function useResumeWizard() {
     certifications: [],
     projects: [],
     template_slug: null,
+    page_count: 1,
   });
 
   const [step, setStep] = useState(1);

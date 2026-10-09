@@ -336,6 +336,7 @@ export default function ResumePage() {
         })),
         custom_sections: snapshot.custom_sections || [],
         template_slug: targetResume.template_slug || snapshot.template_slug || "modern-twocol",
+        page_count: (snapshot.page_count as 1 | 2 | 3) || 1,
       };
 
       localStorage.setItem("resume_wizard_data", JSON.stringify(wizardData));
@@ -395,7 +396,8 @@ export default function ResumePage() {
       if (html && html.length > 50) {
         const resumeItem = resumes.find((r) => r.uuid === uuid);
         const fileName = resumeItem?.title || `resume-${uuid}`;
-        await downloadCvAsPdf(html, fileName);
+        const pageCount = (resumeItem?.data_snapshot?.page_count as 1 | 2 | 3) || 1;
+        await downloadCvAsPdf(html, fileName, pageCount);
         toast.success(
           isBn ? "🎉 PDF সফলভাবে ডাউনলোড হয়েছে!" : "🎉 PDF downloaded successfully!"
         );

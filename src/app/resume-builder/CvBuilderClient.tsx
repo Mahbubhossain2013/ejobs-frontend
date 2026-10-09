@@ -187,7 +187,9 @@ export default function CvBuilderClient() {
       } catch {}
 
       if (html && html.length > 50) {
-        await downloadCvAsPdf(html, `resume-${uuid}`);
+        const foundResume = resumes.find((r) => r.uuid === uuid);
+        const pageCount = (foundResume?.data_snapshot?.page_count as 1 | 2 | 3) || 1;
+        await downloadCvAsPdf(html, `resume-${uuid}`, pageCount);
         toast.success(isBn ? "🎉 PDF ডাউনলোড সম্পন্ন হয়েছে!" : "🎉 PDF downloaded successfully!");
         return;
       }
