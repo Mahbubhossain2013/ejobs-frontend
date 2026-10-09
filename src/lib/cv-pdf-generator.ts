@@ -24,17 +24,23 @@ export function getPageFitStyles(pageCount: PageCount = 1): string {
       }
       @media print {
         html, body {
+          width: 210mm !important;
           height: 297mm !important;
           max-height: 297mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
           overflow: hidden !important;
         }
         .cv-page {
+          width: 210mm !important;
           height: 297mm !important;
           max-height: 297mm !important;
           min-height: 297mm !important;
           overflow: hidden !important;
           page-break-after: avoid !important;
           break-after: avoid !important;
+          page-break-before: avoid !important;
+          break-before: avoid !important;
         }
       }
 
@@ -121,15 +127,24 @@ export function getPageFitStyles(pageCount: PageCount = 1): string {
       @media print {
         html, body {
           width: 210mm !important;
+          height: 594mm !important;
+          max-height: 594mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
         }
         .cv-page {
           width: 210mm !important;
           min-height: 594mm !important;
           max-height: 594mm !important;
+          height: 594mm !important;
+          page-break-after: avoid !important;
+          break-after: avoid !important;
         }
         .left-col, .sidebar, .side, .col-left, .left-panel, aside,
-        .right-col, .main, .main-content, .col-right {
+        .right-col, .main, .main-content, .col-right,
+        .body-wrap, .body-split, .columns-wrap {
           min-height: 594mm !important;
+          align-self: stretch !important;
         }
       }
 
@@ -212,15 +227,24 @@ export function getPageFitStyles(pageCount: PageCount = 1): string {
     @media print {
       html, body {
         width: 210mm !important;
+        height: 891mm !important;
+        max-height: 891mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
       .cv-page {
         width: 210mm !important;
         min-height: 891mm !important;
         max-height: 891mm !important;
+        height: 891mm !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
       }
       .left-col, .sidebar, .side, .col-left, .left-panel, aside,
-      .right-col, .main, .main-content, .col-right {
+      .right-col, .main, .main-content, .col-right,
+      .body-wrap, .body-split, .columns-wrap {
         min-height: 891mm !important;
+        align-self: stretch !important;
       }
     }
 
@@ -339,6 +363,25 @@ export function preparePrintableHtml(rawHtml: string, pageCount: PageCount = 1):
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
+        /* Allow wrappers and multi-item lists to break across pages cleanly without giant gaps */
+        .cv-page,
+        .body-wrap,
+        .body-split,
+        .columns-wrap,
+        .left-panel,
+        .right-panel,
+        .main,
+        .main-content,
+        .sidebar,
+        .cv-appended-section,
+        .experience-section,
+        .education-section,
+        .skills-section {
+          page-break-inside: auto !important;
+          break-inside: auto !important;
+        }
+
+        /* Prevent individual items from splitting halfway */
         .item-box, 
         .contact-item, 
         .entry-block, 
@@ -347,6 +390,7 @@ export function preparePrintableHtml(rawHtml: string, pageCount: PageCount = 1):
         .card-box, 
         .exp-item, 
         .edu-item, 
+        .skill-item,
         .interest-card,
         .cv-signature-section,
         .signature-section,
@@ -354,7 +398,13 @@ export function preparePrintableHtml(rawHtml: string, pageCount: PageCount = 1):
           page-break-inside: avoid !important;
           break-inside: avoid !important;
         }
-        .sec-title, .main-section-title, .sec-heading, .section-title {
+
+        /* Prevent section headings from becoming orphan at bottom of page */
+        .sec-title, 
+        .main-section-title, 
+        .sec-heading, 
+        .section-title,
+        .section-label {
           page-break-after: avoid !important;
           break-after: avoid !important;
         }
@@ -438,25 +488,50 @@ export function preparePrintableHtml(rawHtml: string, pageCount: PageCount = 1):
   const dynamicFitScript = `
     <script>
       (function() {
-        window.addEventListener('load', function() {
+        function runCvAutoFit() {
           try {
             var targetPages = ${pageCount};
             var pageEl = document.querySelector('.cv-page') || document.body;
             if (!pageEl) return;
             var pxPerMm = (pageEl.offsetWidth || 794) / 210;
             var maxAllowedHeight = targetPages * 297 * pxPerMm;
-            var currentHeight = pageEl.scrollHeight || pageEl.offsetHeight;
+            var currentHeight = Math.max(pageEl.scrollHeight, pageEl.offsetHeight);
 
-            // Auto-scale if content slightly overflows target pages
-            if (currentHeight > maxAllowedHeight + 5) {
+            // 1. If content exceeds targetPages: auto-scale down so it fits strictly without overflow
+            if (currentHeight > maxAllowedHeight + 3) {
               var ratio = (maxAllowedHeight - 4) / currentHeight;
-              if (ratio >= 0.80) {
-                pageEl.style.transform = 'scale(' + ratio + ')';
-                pageEl.style.transformOrigin = 'top center';
+              if (ratio >= 0.65) {
+                if ('zoom' in pageEl.style) {
+                  pageEl.style.zoom = ratio;
+                } else {
+                  pageEl.style.transform = 'scale(' + ratio + ')';
+                  pageEl.style.transformOrigin = 'top left';
+                  pageEl.style.width = Math.round(794 / ratio) + 'px';
+                }
+              }
+            } 
+            // 2. If multi-page (2 or 3 pages) and content underfills: expand spacing to eliminate bottom gaps
+            else if (targetPages >= 2 && currentHeight < maxAllowedHeight * 0.85) {
+              var expandRatio = Math.min(1.22, (maxAllowedHeight * 0.94) / currentHeight);
+              if (expandRatio > 1.03 && 'zoom' in pageEl.style) {
+                pageEl.style.zoom = expandRatio;
               }
             }
+
+            // 3. Ensure sidebars and column wrappers stretch to full target height
+            var sidebars = pageEl.querySelectorAll('.left-col, .sidebar, .side, .col-left, .left-panel, aside, .right-col, .main, .main-content, .col-right, .body-wrap, .body-split, .columns-wrap');
+            sidebars.forEach(function(col) {
+              col.style.minHeight = (targetPages * 297) + 'mm';
+              col.style.alignSelf = 'stretch';
+            });
           } catch(e) {}
-        });
+        }
+
+        if (document.readyState === 'complete') {
+          setTimeout(runCvAutoFit, 60);
+        } else {
+          window.addEventListener('load', function() { setTimeout(runCvAutoFit, 60); });
+        }
       })();
     </script>
   `;
@@ -496,20 +571,27 @@ export function printCvHtml(html: string, pageCount: PageCount = 1) {
         // Ensure columns and sidebars stretch to full target page height
         pageEl.style.minHeight = `${pageCount * 297}mm`;
         const sidebars = printWindow.document.querySelectorAll<HTMLElement>(
-          ".left-col, .sidebar, .side, .col-left, .left-panel, aside"
+          ".left-col, .sidebar, .side, .col-left, .left-panel, aside, .right-col, .main, .main-content, .col-right, .body-wrap, .body-split, .columns-wrap"
         );
         sidebars.forEach((s) => {
           s.style.minHeight = `${pageCount * 297}mm`;
           s.style.alignSelf = "stretch";
         });
 
-        // Auto-scale if content exceeds target height
-        const currentHeight = pageEl.scrollHeight || pageEl.offsetHeight;
-        if (currentHeight > targetHeightPx + 5) {
-          const ratio = (targetHeightPx - 5) / currentHeight;
-          if (ratio >= 0.80) {
+        // Auto-scale or expand target height
+        const currentHeight = Math.max(pageEl.scrollHeight, pageEl.offsetHeight);
+        if (currentHeight > targetHeightPx + 3) {
+          const ratio = (targetHeightPx - 4) / currentHeight;
+          if (ratio >= 0.65) {
+            (pageEl.style as any).zoom = `${ratio}`;
             pageEl.style.transform = `scale(${ratio})`;
-            pageEl.style.transformOrigin = "top center";
+            pageEl.style.transformOrigin = "top left";
+            pageEl.style.width = `${Math.round(210 / ratio)}mm`;
+          }
+        } else if (pageCount >= 2 && currentHeight < targetHeightPx * 0.85) {
+          const expandRatio = Math.min(1.22, (targetHeightPx * 0.94) / currentHeight);
+          if (expandRatio > 1.03) {
+            (pageEl.style as any).zoom = `${expandRatio}`;
           }
         }
       }
@@ -724,13 +806,20 @@ export async function downloadCvAsPdf(
     const targetPages = pageCount;
     const fullCanvasHeight = Math.round(targetPages * A4_HEIGHT_PX);
 
-    // Check if target slightly overflows targetPages and auto-scale
+    // Check if target slightly overflows targetPages and auto-scale, or expand if underfilled
     const currentHeight = Math.max(target.scrollHeight, target.offsetHeight);
-    if (currentHeight > fullCanvasHeight + 6) {
+    if (currentHeight > fullCanvasHeight + 3) {
       const autoFitScale = Math.min(1, (fullCanvasHeight - 4) / currentHeight);
-      if (autoFitScale >= 0.78) {
+      if (autoFitScale >= 0.65) {
+        (target.style as any).zoom = `${autoFitScale}`;
         target.style.transform = `scale(${autoFitScale})`;
-        target.style.transformOrigin = "top center";
+        target.style.transformOrigin = "top left";
+        target.style.width = `${Math.round(794 / autoFitScale)}px`;
+      }
+    } else if (pageCount >= 2 && currentHeight < fullCanvasHeight * 0.85) {
+      const expandScale = Math.min(1.22, (fullCanvasHeight * 0.94) / currentHeight);
+      if (expandScale > 1.03) {
+        (target.style as any).zoom = `${expandScale}`;
       }
     }
 

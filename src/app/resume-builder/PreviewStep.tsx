@@ -882,7 +882,10 @@ export default function PreviewStep({
             <PageCountSelector
               compact
               pageCount={pageCount}
-              onChange={(newCount) => setPageCount(newCount)}
+              onChange={(newCount) => {
+                setPageCount(newCount);
+                setSectionData("page_count", newCount);
+              }}
             />
             <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed">
               {pageCount === 1
@@ -951,7 +954,10 @@ export default function PreviewStep({
               <PageCountSelector
                 compact
                 pageCount={pageCount}
-                onChange={(newCount) => setPageCount(newCount)}
+                onChange={(newCount) => {
+                  setPageCount(newCount);
+                  setSectionData("page_count", newCount);
+                }}
               />
               <Button
                 size="sm"

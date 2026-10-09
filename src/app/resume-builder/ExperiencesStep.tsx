@@ -100,7 +100,7 @@ export default function ExperiencesStep({ wizard, onNext, onPrev }: { wizard: Re
 
         {activeExpView === "details" ? (
           <div className="space-y-6">
-            <ResumeObjectiveSection data={data.resume_objective} onChange={(d) => setSectionData("resume_objective", d)} />
+            <ResumeObjectiveSection data={data.resume_objective} onChange={(d) => setSectionData("resume_objective", d)} isBn={isBn} />
             <CustomSection data={data.custom_sections} onChange={(d) => setSectionData("custom_sections", d)} isBn={isBn} />
           </div>
         ) : activeExpView === "qualifications" ? (

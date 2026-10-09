@@ -26,6 +26,7 @@ export default function CvPreviewClient() {
   const [html, setHtml] = useState<string>("");
   const [pageCount, setPageCount] = useState<PageCount>(1);
   const [resumeTitle, setResumeTitle] = useState<string>("");
+  const [resumeSnapshot, setResumeSnapshot] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
@@ -58,6 +59,7 @@ export default function CvPreviewClient() {
         setIsPublic(!!resume.is_public);
         setShareToken(resume.share_token || null);
         if (resume.title) setResumeTitle(resume.title);
+        if (resume.data_snapshot) setResumeSnapshot(resume.data_snapshot);
         if (resume.data_snapshot?.page_count) {
           const pc = Number(resume.data_snapshot.page_count);
           if (pc === 1 || pc === 2 || pc === 3) {
@@ -235,7 +237,14 @@ export default function CvPreviewClient() {
             <PageCountSelector
               compact
               pageCount={pageCount}
-              onChange={(newCount) => setPageCount(newCount)}
+              onChange={(newCount) => {
+                setPageCount(newCount);
+                if (uuid && resumeSnapshot) {
+                  const updated = { ...resumeSnapshot, page_count: newCount };
+                  setResumeSnapshot(updated);
+                  resumeService.updateResume(uuid, { data_snapshot: updated }).catch(() => {});
+                }
+              }}
             />
             <Button variant="default" size="sm" onClick={handlePrint} className="gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm">
               <Printer className="h-4 w-4" />

@@ -30,6 +30,8 @@ import { formatCurrency } from "@/lib/utils";
 import TemplateThumbnail from "@/components/cv/TemplateThumbnail";
 import type { CvTemplate } from "@/types";
 import { getTemplateDownloadCount, formatDownloadCount } from "@/lib/cv-download-tracker";
+import { preparePrintableHtml } from "@/lib/cv-pdf-generator";
+import PageCountSelector, { PageCount } from "@/components/cv/PageCountSelector";
 
 const A4_WIDTH_PX = 794;
 const A4_HEIGHT_PX = Math.round(A4_WIDTH_PX * 1.414);
@@ -45,6 +47,7 @@ export default function TemplateStep({
   const isBn = language === "bn";
   const router = useRouter();
   const { data, setSectionData } = wizard;
+  const pageCount = (data.page_count as PageCount) || 1;
   const [templates, setTemplates] = useState<CvTemplate[]>(DEFAULT_FALLBACK_TEMPLATES);
   const [loading, setLoading] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(
@@ -534,6 +537,17 @@ export default function TemplateStep({
         </div>
       </div>
 
+      {/* ── Page Count Selector (১ পেজ, ২ পেজ, ৩ পেজ) ── */}
+      <div className="bg-card p-4 sm:p-5 rounded-2xl border-2 shadow-sm">
+        <PageCountSelector
+          pageCount={pageCount}
+          onChange={(newCount) => {
+            setSectionData("page_count", newCount);
+          }}
+          isBn={isBn}
+        />
+      </div>
+
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => (
@@ -694,18 +708,18 @@ export default function TemplateStep({
                   >
                     <div
                       style={{
-                        height: `${A4_HEIGHT_PX * scale}px`,
+                        height: `${A4_HEIGHT_PX * pageCount * scale}px`,
                         overflow: "hidden",
                         position: "relative",
                       }}
                     >
                       <iframe
-                        srcDoc={previewHtml}
+                        srcDoc={preparePrintableHtml(previewHtml, pageCount)}
                         title="Live CV Preview"
-                        sandbox="allow-same-origin"
+                        sandbox="allow-same-origin allow-scripts allow-modals"
                         style={{
                           width: `${A4_WIDTH_PX}px`,
-                          height: `${A4_HEIGHT_PX}px`,
+                          height: `${A4_HEIGHT_PX * pageCount}px`,
                           border: "none",
                           transform: `scale(${scale})`,
                           transformOrigin: "top left",
@@ -714,6 +728,33 @@ export default function TemplateStep({
                           left: 0,
                         }}
                       />
+
+                      {/* Visual Page Break Lines for Multi-page CVs */}
+                      {pageCount >= 2 && (
+                        <div
+                          style={{ top: `${A4_HEIGHT_PX * scale}px` }}
+                          className="absolute left-0 right-0 z-20 pointer-events-none flex items-center justify-center -translate-y-1/2"
+                        >
+                          <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+                          <span className="shrink-0 px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full shadow-lg">
+                            {isBn ? "── পৃষ্ঠা ১ সমাপ্ত / পৃষ্ঠা ২ শুরু ──" : "── Page 1 End / Page 2 Start ──"}
+                          </span>
+                          <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+                        </div>
+                      )}
+
+                      {pageCount === 3 && (
+                        <div
+                          style={{ top: `${A4_HEIGHT_PX * 2 * scale}px` }}
+                          className="absolute left-0 right-0 z-20 pointer-events-none flex items-center justify-center -translate-y-1/2"
+                        >
+                          <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+                          <span className="shrink-0 px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full shadow-lg">
+                            {isBn ? "── পৃষ্ঠা ২ সমাপ্ত / পৃষ্ঠা ৩ শুরু ──" : "── Page 2 End / Page 3 Start ──"}
+                          </span>
+                          <div className="w-full border-t-2 border-dashed border-blue-500/70" />
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -738,7 +779,17 @@ export default function TemplateStep({
                   </p>
                 </div>
 
-                <div className="p-3 bg-muted/50 rounded-lg text-xs space-y-1.5 border">
+                <div className="p-3 bg-muted/50 rounded-lg text-xs space-y-2 border">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">{isBn ? "সিভি দৈর্ঘ্য:" : "CV Length:"}</span>
+                    <span className="font-bold text-primary">
+                      {pageCount === 1
+                        ? isBn ? "১ পেজ (কম্প্যাক্ট)" : "1 Page (Compact)"
+                        : pageCount === 2
+                        ? isBn ? "২ পেজ (ব্যালান্সড)" : "2 Pages (Balanced)"
+                        : isBn ? "৩ পেজ (এক্সিকিউটিভ)" : "3 Pages (Executive)"}
+                    </span>
+                  </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{isBn ? "মূল্য:" : "Price:"}</span>
                     <span className="font-bold">

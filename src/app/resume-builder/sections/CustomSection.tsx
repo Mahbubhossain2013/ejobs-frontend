@@ -23,11 +23,43 @@ export default function CustomSection({ data, onChange, isBn }: Props) {
           </button>
           {openIdx === i && (
             <div className="p-3 border-t space-y-3">
-              <div className="space-y-1"><Label className="text-xs">Title</Label><Input value={sec.title} onChange={(e) => { const n = [...data]; n[i] = { ...n[i], title: e.target.value }; onChange(n); }} placeholder="Section title" className="h-8 text-sm" /></div>
-              <div className="space-y-1"><Label className="text-xs">Description</Label><Textarea value={sec.description} onChange={(e) => { const n = [...data]; n[i] = { ...n[i], description: e.target.value }; onChange(n); }} rows={3} className="text-sm" /></div>
+              <div className="space-y-1">
+                <Label className="text-xs">{isBn ? "শিরোনাম (Title)" : "Title"}</Label>
+                <Input value={sec.title} onChange={(e) => { const n = [...data]; n[i] = { ...n[i], title: e.target.value }; onChange(n); }} placeholder={isBn ? "সেকশনের শিরোনাম" : "Section title"} className="h-8 text-sm" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">{isBn ? "বিবরণ (Description)" : "Description"}</Label>
+                  {(() => {
+                    const words = (sec.description || "").trim() ? (sec.description || "").trim().split(/\s+/).length : 0;
+                    return (
+                      <span className={`text-[11px] font-medium ${words >= 250 ? 'text-amber-500 font-bold' : 'text-muted-foreground'}`}>
+                        {words} / 250 {isBn ? "শব্দ" : "words"}
+                      </span>
+                    );
+                  })()}
+                </div>
+                <Textarea
+                  value={sec.description}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const trimmed = val.trim();
+                    let finalVal = val;
+                    if (trimmed && trimmed.split(/\s+/).length > 250) {
+                      finalVal = trimmed.split(/\s+/).slice(0, 250).join(" ");
+                    }
+                    const n = [...data];
+                    n[i] = { ...n[i], description: finalVal };
+                    onChange(n);
+                  }}
+                  rows={3}
+                  className="text-sm"
+                  placeholder={isBn ? "বিবরণ লিখুন (সর্বোচ্চ ২৫০ শব্দ)..." : "Enter description (max 250 words)..."}
+                />
+              </div>
               <div className="flex justify-between pt-2">
-                <Button variant="ghost" size="sm" className="text-destructive" onClick={() => onChange(data.filter((_, idx) => idx !== i))}><Trash2 className="h-3.5 w-3.5 mr-1" />Delete</Button>
-                <Button size="sm" onClick={() => toast.success("Saved!")}><Save className="h-3.5 w-3.5 mr-1" />Save</Button>
+                <Button variant="ghost" size="sm" className="text-destructive" onClick={() => onChange(data.filter((_, idx) => idx !== i))}><Trash2 className="h-3.5 w-3.5 mr-1" />{isBn ? "মুছে ফেলুন" : "Delete"}</Button>
+                <Button size="sm" onClick={() => toast.success(isBn ? "সংরক্ষিত হয়েছে!" : "Saved!")}><Save className="h-3.5 w-3.5 mr-1" />{isBn ? "সংরক্ষণ" : "Save"}</Button>
               </div>
             </div>
           )}
