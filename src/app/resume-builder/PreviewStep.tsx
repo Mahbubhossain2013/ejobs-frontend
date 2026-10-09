@@ -24,15 +24,32 @@ import {
   Edit3,
   RotateCcw,
   AlertCircle,
+  Lock,
+  Crown,
+  Wallet,
+  CreditCard,
+  Plus,
+  CheckCircle2,
 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import type { CvTemplate } from "@/types";
+import { formatCurrency } from "@/lib/utils";
 import { printCvHtml, downloadCvAsPdf, preparePrintableHtml } from "@/lib/cv-pdf-generator";
 import PageCountSelector, { PageCount } from "@/components/cv/PageCountSelector";
 
@@ -57,6 +74,50 @@ export default function PreviewStep({
     data.template_slug || "modern-twocol"
   );
   const currentTemplate = templates.find((t) => t.slug === selectedSlug);
+
+  const isPremium = Boolean(
+    currentTemplate?.is_premium && Number(currentTemplate?.price || 0) > 0
+  );
+  const templatePrice = Number(currentTemplate?.price || 0);
+
+  const [isPurchased, setIsPurchased] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [depositMethods, setDepositMethods] = useState<any[]>([]);
+  const [selectedGateway, setSelectedGateway] = useState("");
+  const [depositAmount, setDepositAmount] = useState("");
+  const [depositLoading, setDepositLoading] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [paymentStep, setPaymentStep] = useState<"confirm" | "deposit">("confirm");
+  const [purchasing, setPurchasing] = useState(false);
+
+  const checkAccess = useCallback(async () => {
+    if (!selectedSlug) return;
+    const hasAuth =
+      typeof window !== "undefined" &&
+      !!JSON.parse(localStorage.getItem("auth-storage") || "{}")?.state?.token;
+    if (!hasAuth) {
+      setIsPurchased(false);
+      return;
+    }
+    try {
+      const res = await api.get(`/cv/template-check/${selectedSlug}`);
+      if (res.data?.status && res.data?.data) {
+        setIsPurchased(Boolean(res.data.data.is_purchased));
+        setWalletBalance(Number(res.data.data.wallet_balance || 0));
+      }
+    } catch {
+      try {
+        const wRes = await api.get("/candidate/wallet");
+        setWalletBalance(Number(wRes.data?.wallet?.balance || 0));
+        const methods = wRes.data?.deposit_methods || [];
+        setDepositMethods(methods);
+      } catch {}
+    }
+  }, [selectedSlug]);
+
+  useEffect(() => {
+    checkAccess();
+  }, [checkAccess]);
 
   const [pageCount, setPageCount] = useState<PageCount>((data.page_count as PageCount) || 1);
 
@@ -359,9 +420,132 @@ export default function PreviewStep({
 
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
+  const handleOpenPayment = async () => {
+    const hasAuth =
+      typeof window !== "undefined" &&
+      !!JSON.parse(localStorage.getItem("auth-storage") || "{}")?.state?.token;
+    if (!hasAuth) {
+      toast.error(
+        isBn
+          ? "🔒 এটি একটি প্রিমিয়াম টেমপ্লেট। পেমেন্ট সম্পন্ন করতে অনুগ্রহ করে প্রথমে লগইন করুন।"
+          : "🔒 This is a premium template. Please login to complete payment."
+      );
+      router.push("/login?redirect=" + encodeURIComponent("/resume-builder/preview"));
+      return;
+    }
+
+    try {
+      const wRes = await api.get("/candidate/wallet");
+      const bal = Number(wRes.data?.wallet?.balance || 0);
+      setWalletBalance(bal);
+      const methods = wRes.data?.deposit_methods || [];
+      setDepositMethods(methods);
+      if (methods.length > 0 && !selectedGateway) {
+        setSelectedGateway(String(methods[0].id));
+      }
+      const needed = Math.max(10, templatePrice - bal);
+      setDepositAmount(String(needed));
+    } catch {}
+
+    setPaymentStep("confirm");
+    setPaymentModalOpen(true);
+  };
+
+  const handlePurchaseAndCreate = async () => {
+    setPurchasing(true);
+    try {
+      const fullSnapshot = buildPayload();
+      const editingTitle =
+        typeof window !== "undefined" ? localStorage.getItem("editing_resume_title") : null;
+      const cvTitle = editingTitle || `${fullSnapshot.personal?.full_name || "My"} CV`;
+      const res = await api.post("/cv/create", {
+        template_slug: selectedSlug,
+        data_snapshot: fullSnapshot,
+        title: cvTitle,
+      });
+
+      const uuid = res.data?.data?.uuid || res.data?.uuid || `cv-${Date.now()}`;
+      const id = res.data?.data?.id || res.data?.id;
+      setCreatedResumeUuid(uuid);
+      saveToLocalHistory(uuid, cvTitle, id);
+      setIsPurchased(true);
+      setPaymentModalOpen(false);
+      setSuccessModalOpen(true);
+      toast.success(
+        isBn
+          ? "🎉 পেমেন্ট সফল হয়েছে এবং সিভি আনলক হয়েছে!"
+          : "🎉 Payment successful and CV unlocked!"
+      );
+    } catch (err: any) {
+      if (err.response?.status === 402) {
+        setPaymentStep("deposit");
+        toast.error(
+          isBn
+            ? "পর্যাপ্ত ওয়ালেট ব্যালেন্স নেই। অনুগ্রহ করে ওয়ালেট রিচার্জ করুন।"
+            : "Insufficient balance. Please add money to your wallet."
+        );
+      } else {
+        toast.error(
+          err.response?.data?.message ||
+            (isBn ? "পেমেন্ট ব্যর্থ হয়েছে" : "Payment failed")
+        );
+      }
+    } finally {
+      setPurchasing(false);
+    }
+  };
+
+  const handleDeposit = async () => {
+    if (!selectedGateway || !depositAmount || depositLoading) return;
+    setDepositLoading(true);
+    try {
+      const res = await api.post("/candidate/deposit", {
+        gateway_id: Number(selectedGateway),
+        amount: Number(depositAmount),
+      });
+
+      if (res.data?.requires_redirect && res.data.payment_id) {
+        sessionStorage.setItem("bkash_payment_id", res.data.payment_id);
+        if (res.data.payment_url) {
+          window.location.href = res.data.payment_url;
+          return;
+        }
+      }
+
+      if (res.data?.redirect_url) {
+        window.location.href = res.data.redirect_url;
+        return;
+      }
+
+      toast.success(
+        isBn ? "ডিপোজিট সাবমিট করা হয়েছে" : "Deposit submitted successfully"
+      );
+      setPaymentStep("confirm");
+      try {
+        const wRes = await api.get("/candidate/wallet");
+        setWalletBalance(Number(wRes.data?.wallet?.balance || 0));
+      } catch {}
+    } catch (e: any) {
+      toast.error(e.response?.data?.message || "Deposit failed");
+    } finally {
+      setDepositLoading(false);
+    }
+  };
+
   const handlePrint = () => {
     if (!previewHtml || previewError) {
       toast.error(isBn ? "প্রিভিউ প্রস্তুত হয়নি, অনুগ্রহ করে অপেক্ষা করুন অথবা পুনরায় চেষ্টা করুন" : "Preview is not ready yet. Please wait or retry.");
+      return;
+    }
+
+    // Payment gate for premium templates
+    if (isPremium && !isPurchased) {
+      toast.error(
+        isBn
+          ? `🔒 এটি একটি প্রিমিয়াম টেমপ্লেট (${formatCurrency(templatePrice)})। প্রিন্ট বা PDF ডাউনলোড করতে প্রথমে পেমেন্ট সম্পন্ন করুন।`
+          : `🔒 This is a premium template (${formatCurrency(templatePrice)}). Please complete payment to unlock download and print.`
+      );
+      handleOpenPayment();
       return;
     }
 
@@ -407,6 +591,17 @@ export default function PreviewStep({
   const handleDownloadPdf = async () => {
     if (!previewHtml || previewError) {
       toast.error(isBn ? "প্রিভিউ প্রস্তুত হয়নি, অনুগ্রহ করে অপেক্ষা করুন অথবা পুনরায় চেষ্টা করুন" : "Preview is not ready yet. Please wait or retry.");
+      return;
+    }
+
+    // Payment gate for premium templates
+    if (isPremium && !isPurchased) {
+      toast.error(
+        isBn
+          ? `🔒 এটি একটি প্রিমিয়াম টেমপ্লেট (${formatCurrency(templatePrice)})। ডাউনলোড করতে প্রথমে পেমেন্ট সম্পন্ন করুন।`
+          : `🔒 This is a premium template (${formatCurrency(templatePrice)}). Please complete payment to unlock download.`
+      );
+      handleOpenPayment();
       return;
     }
 
@@ -487,6 +682,22 @@ export default function PreviewStep({
         return false;
       }
     })();
+
+    // Premium template payment requirement
+    if (isPremium && !isPurchased) {
+      if (!hasAuth) {
+        toast.error(
+          isBn
+            ? "🔒 এটি একটি প্রিমিয়াম টেমপ্লেট। পেমেন্ট সম্পন্ন করতে অনুগ্রহ করে প্রথমে লগইন করুন।"
+            : "🔒 Premium template. Please login to complete payment."
+        );
+        router.push("/login?redirect=" + encodeURIComponent("/resume-builder/preview"));
+        return;
+      }
+
+      handleOpenPayment();
+      return;
+    }
 
     const fullSnapshot = buildPayload();
     const editingUuid = typeof window !== "undefined" ? localStorage.getItem("editing_resume_uuid") : null;
@@ -586,15 +797,29 @@ export default function PreviewStep({
               {isBn ? "ধাপ ৪: লাইভ সিভি প্রিভিউ" : "Step 4: Live CV Preview"}
             </Badge>
           </div>
-          <h2 className="text-2xl font-black tracking-tight">
-            {isEditing
-              ? isBn
-                ? "আপনার সিভির প্রিভিউ ও আপডেট"
-                : "Review & Update Your CV"
-              : isBn
-              ? "আপনার সিভির প্রিভিউ ও ফাইনাল সাবমিশন"
-              : "Review & Submit Your CV"}
-          </h2>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-2xl font-black tracking-tight">
+              {isEditing
+                ? isBn
+                  ? "আপনার সিভির প্রিভিউ ও আপডেট"
+                  : "Review & Update Your CV"
+                : isBn
+                ? "আপনার সিভির প্রিভিউ ও ফাইনাল সাবমিশন"
+                : "Review & Submit Your CV"}
+            </h2>
+            {isPremium && (
+              <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold gap-1 px-2.5 py-0.5 shadow-sm">
+                <Crown className="w-3.5 h-3.5 text-amber-100" />
+                {isPurchased
+                  ? isBn
+                    ? "প্রিমিয়াম (আনলকড)"
+                    : "Premium (Unlocked)"
+                  : isBn
+                  ? `প্রিমিয়াম টেমপ্লেট (${formatCurrency(templatePrice)})`
+                  : `Premium (${formatCurrency(templatePrice)})`}
+              </Badge>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground mt-1">
             {isBn
               ? "নিচে আপনার পূরণকৃত তথ্য দিয়ে রেন্ডার করা পূর্ণাঙ্গ সিভি দেখতে পাচ্ছেন।"
@@ -612,10 +837,16 @@ export default function PreviewStep({
             variant="outline"
             size="sm"
             onClick={handlePrint}
-            className="gap-1.5 bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-bold hover:bg-blue-100"
+            className={`gap-1.5 font-bold ${
+              isPremium && !isPurchased
+                ? "bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-100"
+                : "bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100"
+            }`}
           >
-            <Download className="w-4 h-4" />
-            {isBn ? "প্রিন্ট / PDF" : "Print / PDF"}
+            {isPremium && !isPurchased ? <Lock className="w-4 h-4 text-amber-600" /> : <Download className="w-4 h-4" />}
+            {isPremium && !isPurchased
+              ? isBn ? "প্রিন্ট / PDF (লক)" : "Print / PDF (Locked)"
+              : isBn ? "প্রিন্ট / PDF" : "Print / PDF"}
           </Button>
 
           <Button
@@ -632,14 +863,24 @@ export default function PreviewStep({
             size="default"
             onClick={handleSubmitCv}
             disabled={submitting}
-            className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg"
+            className={`gap-2 font-bold shadow-lg ${
+              isPremium && !isPurchased
+                ? "bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white"
+                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+            }`}
           >
             {submitting ? (
               <Loader2 className="w-4 h-4 animate-spin" />
+            ) : isPremium && !isPurchased ? (
+              <Crown className="w-4 h-4 text-amber-200" />
             ) : (
               <FileCheck className="w-4 h-4" />
             )}
-            {isEditing
+            {isPremium && !isPurchased
+              ? isBn
+                ? `পেমেন্ট ও সাবমিট (${formatCurrency(templatePrice)})`
+                : `Pay & Submit (${formatCurrency(templatePrice)})`
+              : isEditing
               ? isBn
                 ? "সিভি আপডেট করুন"
                 : "Update CV"
@@ -816,24 +1057,40 @@ export default function PreviewStep({
             size="lg"
             variant="outline"
             onClick={handlePrint}
-            className="gap-2 border-2 border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 font-black px-5 shadow-md"
+            className={`gap-2 font-black px-5 shadow-md ${
+              isPremium && !isPurchased
+                ? "bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-400 text-amber-700 dark:text-amber-300 hover:bg-amber-100"
+                : "border-2 border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950"
+            }`}
           >
-            <Download className="w-5 h-5" />
-            {isBn ? "প্রিন্ট / PDF" : "Print / PDF"}
+            {isPremium && !isPurchased ? <Lock className="w-5 h-5 text-amber-600" /> : <Download className="w-5 h-5" />}
+            {isPremium && !isPurchased
+              ? isBn ? "প্রিন্ট / PDF (লক)" : "Print / PDF (Locked)"
+              : isBn ? "প্রিন্ট / PDF" : "Print / PDF"}
           </Button>
 
           <Button
             size="lg"
             onClick={handleSubmitCv}
             disabled={submitting}
-            className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black px-6 shadow-xl text-base"
+            className={`gap-2 font-black px-6 shadow-xl text-base ${
+              isPremium && !isPurchased
+                ? "bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white"
+                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+            }`}
           >
             {submitting ? (
               <Loader2 className="w-5 h-5 animate-spin" />
+            ) : isPremium && !isPurchased ? (
+              <Crown className="w-5 h-5 text-amber-200" />
             ) : (
               <Check className="w-5 h-5" />
             )}
-            {isEditing
+            {isPremium && !isPurchased
+              ? isBn
+                ? `পেমেন্ট ও সাবমিট (${formatCurrency(templatePrice)})`
+                : `Pay & Submit (${formatCurrency(templatePrice)})`
+              : isEditing
               ? isBn
                 ? "সিভি আপডেট করুন"
                 : "Update CV"
@@ -860,7 +1117,11 @@ export default function PreviewStep({
               : "🎉 CV Created Successfully!"}
           </DialogTitle>
           <p className="text-sm text-muted-foreground mt-2">
-            {isBn
+            {isPremium && !isPurchased
+              ? isBn
+                ? "এটি একটি প্রিমিয়াম সিভি টেমপ্লেট। ডাউনলোড বা প্রিন্ট করতে পেমেন্ট সম্পন্ন করুন।"
+                : "This is a premium template. Please complete payment to unlock download and print."
+              : isBn
               ? "আপনার সিভি প্রস্তুত। নিচের অপশনগুলো থেকে সরাসরি PDF ডাউনলোড অথবা প্রিন্ট করুন।"
               : "Your custom CV is ready. Download it as PDF or print directly."}
           </p>
@@ -902,41 +1163,84 @@ export default function PreviewStep({
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 mt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Button
-                size="lg"
-                onClick={handleDownloadPdf}
-                disabled={downloadingPdf}
-                className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg h-12"
-              >
-                {downloadingPdf ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-                {isBn ? "PDF ডাউনলোড করুন" : "Download PDF"}
-              </Button>
+          {/* Download & Print Buttons: STRICTLY HIDDEN UNTIL PAYMENT IS COMPLETED */}
+          {isPremium && !isPurchased ? (
+            <div className="flex flex-col gap-3 mt-4">
+              <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/50 border-2 border-amber-300 dark:border-amber-800 text-center space-y-2">
+                <div className="flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400 font-bold">
+                  <Lock className="w-5 h-5" />
+                  <span>{isBn ? "ডাউনলোড ও প্রিন্ট লক করা আছে" : "Download & Print Locked"}</span>
+                </div>
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  {isBn
+                    ? `প্রিমিয়াম টেমপ্লেট ডাউনলোড করতে ${formatCurrency(templatePrice)} পেমেন্ট সম্পন্ন করুন।`
+                    : `Complete payment of ${formatCurrency(templatePrice)} to unlock downloading and printing.`}
+                </p>
+              </div>
 
               <Button
                 size="lg"
-                variant="outline"
-                onClick={handlePrint}
-                className="gap-2 border-2 border-primary text-primary hover:bg-primary/10 font-bold h-12"
+                onClick={() => {
+                  setSuccessModalOpen(false);
+                  handleOpenPayment();
+                }}
+                className="gap-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold shadow-lg h-12"
               >
-                <FileCheck className="w-5 h-5" />
-                {isBn ? "সরাসরি প্রিন্ট করুন" : "Direct Print"}
+                <Crown className="w-5 h-5 text-amber-200" />
+                {isBn
+                  ? `পেমেন্ট সম্পন্ন করুন (${formatCurrency(templatePrice)})`
+                  : `Complete Payment (${formatCurrency(templatePrice)})`}
+              </Button>
+
+              <Button
+                size="default"
+                variant="ghost"
+                onClick={() => {
+                  setSuccessModalOpen(false);
+                  router.push("/dashboard/resume");
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground mt-1"
+              >
+                {isBn ? "আমার সিভি ড্যাশবোর্ডে যান →" : "Go to CV Dashboard →"}
               </Button>
             </div>
+          ) : (
+            <div className="flex flex-col gap-3 mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button
+                  size="lg"
+                  onClick={handleDownloadPdf}
+                  disabled={downloadingPdf}
+                  className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg h-12"
+                >
+                  {downloadingPdf ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                  {isBn ? "PDF ডাউনলোড করুন" : "Download PDF"}
+                </Button>
 
-            <Button
-              size="default"
-              variant="ghost"
-              onClick={() => {
-                setSuccessModalOpen(false);
-                router.push("/dashboard/resume");
-              }}
-              className="text-xs text-muted-foreground hover:text-foreground mt-1"
-            >
-              {isBn ? "আমার সিভি ড্যাশবোর্ডে যান →" : "Go to CV Dashboard →"}
-            </Button>
-          </div>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={handlePrint}
+                  className="gap-2 border-2 border-primary text-primary hover:bg-primary/10 font-bold h-12"
+                >
+                  <FileCheck className="w-5 h-5" />
+                  {isBn ? "সরাসরি প্রিন্ট করুন" : "Direct Print"}
+                </Button>
+              </div>
+
+              <Button
+                size="default"
+                variant="ghost"
+                onClick={() => {
+                  setSuccessModalOpen(false);
+                  router.push("/dashboard/resume");
+                }}
+                className="text-xs text-muted-foreground hover:text-foreground mt-1"
+              >
+                {isBn ? "আমার সিভি ড্যাশবোর্ডে যান →" : "Go to CV Dashboard →"}
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -963,19 +1267,45 @@ export default function PreviewStep({
                 size="sm"
                 variant="outline"
                 onClick={handlePrint}
-                className="bg-blue-600 hover:bg-blue-700 text-white border-0 font-bold"
+                className={`font-bold border-0 ${
+                  isPremium && !isPurchased
+                    ? "bg-amber-600 hover:bg-amber-700 text-white"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                }`}
               >
-                <Download className="w-4 h-4 mr-1.5" />
-                {isBn ? "প্রিন্ট / PDF" : "Print / PDF"}
+                {isPremium && !isPurchased ? (
+                  <Lock className="w-4 h-4 mr-1.5" />
+                ) : (
+                  <Download className="w-4 h-4 mr-1.5" />
+                )}
+                {isPremium && !isPurchased
+                  ? isBn ? "প্রিন্ট / PDF (লক)" : "Print / PDF (Locked)"
+                  : isBn ? "প্রিন্ট / PDF" : "Print / PDF"}
               </Button>
               <Button
                 size="sm"
                 onClick={handleSubmitCv}
                 disabled={submitting}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                className={`font-bold ${
+                  isPremium && !isPurchased
+                    ? "bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white"
+                    : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                }`}
               >
-                <FileCheck className="w-4 h-4 mr-1.5" />
-                {isBn ? "সাবমিট করুন" : "Submit CV"}
+                {submitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+                ) : isPremium && !isPurchased ? (
+                  <Crown className="w-4 h-4 mr-1.5 text-amber-200" />
+                ) : (
+                  <FileCheck className="w-4 h-4 mr-1.5" />
+                )}
+                {isPremium && !isPurchased
+                  ? isBn
+                    ? `পেমেন্ট ও সাবমিট (${formatCurrency(templatePrice)})`
+                    : `Pay & Submit (${formatCurrency(templatePrice)})`
+                  : isBn
+                  ? "সাবমিট করুন"
+                  : "Submit CV"}
               </Button>
             </div>
           </DialogHeader>
@@ -1020,6 +1350,187 @@ export default function PreviewStep({
               )}
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Premium Template Payment Modal */}
+      <Dialog open={paymentModalOpen} onOpenChange={setPaymentModalOpen}>
+        <DialogContent className="max-w-md p-6 bg-card border-2 shadow-2xl rounded-2xl">
+          <DialogHeader>
+            <div className="w-12 h-12 bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-sm">
+              <Crown className="w-6 h-6" />
+            </div>
+            <DialogTitle className="text-xl font-bold text-center text-foreground">
+              {isBn ? "প্রিমিয়াম সিভি আনলক করুন" : "Unlock Premium CV"}
+            </DialogTitle>
+            <DialogDescription className="text-center text-sm text-muted-foreground">
+              {currentTemplate?.name || selectedSlug} — {formatCurrency(templatePrice)}
+            </DialogDescription>
+          </DialogHeader>
+
+          {paymentStep === "confirm" ? (
+            <div className="space-y-4 pt-2">
+              <div className="p-4 rounded-xl bg-muted/50 border space-y-2.5">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">
+                    {isBn ? "টেমপ্লেট মূল্য:" : "Template Price:"}
+                  </span>
+                  <span className="font-bold text-foreground">
+                    {formatCurrency(templatePrice)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">
+                    {isBn ? "আপনার ওয়ালেট ব্যালেন্স:" : "Your Wallet Balance:"}
+                  </span>
+                  <span
+                    className={`font-bold ${
+                      walletBalance >= templatePrice
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-amber-600 dark:text-amber-400"
+                    }`}
+                  >
+                    {formatCurrency(walletBalance)}
+                  </span>
+                </div>
+                <div className="border-t pt-2 flex justify-between items-center text-sm">
+                  <span className="font-medium text-foreground">
+                    {isBn ? "অবশিষ্ট ব্যালেন্স:" : "Remaining Balance:"}
+                  </span>
+                  <span className="font-bold">
+                    {walletBalance >= templatePrice
+                      ? formatCurrency(walletBalance - templatePrice)
+                      : formatCurrency(0)}
+                  </span>
+                </div>
+              </div>
+
+              {walletBalance >= templatePrice ? (
+                <div className="space-y-3">
+                  <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                    <span>
+                      {isBn
+                        ? "আপনার ওয়ালেটে পর্যাপ্ত ব্যালেন্স রয়েছে। এক ক্লিকে টেমপ্লেটটি আনলক করুন।"
+                        : "Sufficient wallet balance. One click to unlock template."}
+                    </span>
+                  </div>
+
+                  <Button
+                    onClick={handlePurchaseAndCreate}
+                    disabled={purchasing}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-11 gap-2 shadow-lg"
+                  >
+                    {purchasing ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Wallet className="w-4 h-4" />
+                    )}
+                    {isBn
+                      ? `ওয়ালেট থেকে পেমেন্ট করুন (${formatCurrency(templatePrice)})`
+                      : `Pay from Wallet (${formatCurrency(templatePrice)})`}
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+                    <span>
+                      {isBn
+                        ? `আপনার ওয়ালেটে আরও ${formatCurrency(
+                            templatePrice - walletBalance
+                          )} প্রয়োজন। বিকাশ, নগদ, রকেট দিয়ে ওয়ালেটে রিচার্জ করুন।`
+                        : `Need ${formatCurrency(
+                            templatePrice - walletBalance
+                          )} more. Please deposit via bKash, Nagad, Rocket, or card.`}
+                    </span>
+                  </div>
+
+                  <Button
+                    onClick={() => setPaymentStep("deposit")}
+                    className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold h-11 gap-2 shadow-lg"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {isBn ? "ওয়ালেট রিচার্জ / ডিপোজিট করুন" : "Add Funds / Deposit Now"}
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4 pt-2">
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">
+                    {isBn ? "পেমেন্ট মাধ্যম (Gateway):" : "Payment Method:"}
+                  </Label>
+                  <Select
+                    value={selectedGateway}
+                    onValueChange={(val) => setSelectedGateway(val)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        placeholder={
+                          isBn ? "মাধ্যম নির্বাচন করুন" : "Select Gateway"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {depositMethods.map((m: any) => (
+                        <SelectItem key={m.id} value={String(m.id)}>
+                          {m.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">
+                    {isBn ? "টাকার পরিমাণ (৳):" : "Amount (৳):"}
+                  </Label>
+                  <Input
+                    type="number"
+                    value={depositAmount}
+                    onChange={(e) => setDepositAmount(e.target.value)}
+                    min={Math.max(10, templatePrice - walletBalance)}
+                    placeholder="100"
+                    className="font-medium"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    {isBn
+                      ? `কমপক্ষে ${formatCurrency(
+                          Math.max(10, templatePrice - walletBalance)
+                        )} রিচার্জ প্রয়োজন।`
+                      : `Minimum ${formatCurrency(
+                          Math.max(10, templatePrice - walletBalance)
+                        )} required.`}
+                  </p>
+                </div>
+
+                <div className="pt-2 flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setPaymentStep("confirm")}
+                    className="w-1/3"
+                  >
+                    {isBn ? "← পেছনে" : "← Back"}
+                  </Button>
+                  <Button
+                    onClick={handleDeposit}
+                    disabled={depositLoading || !selectedGateway || !depositAmount}
+                    className="w-2/3 bg-primary text-primary-foreground font-bold gap-2 shadow-md"
+                  >
+                    {depositLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <CreditCard className="w-4 h-4" />
+                    )}
+                    {isBn ? "পেমেন্ট এগিয়ে নিন" : "Proceed to Pay"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
