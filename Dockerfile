@@ -1,5 +1,5 @@
 FROM node:22-alpine AS base
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl libc6-compat
 
 FROM base AS deps
 WORKDIR /app
@@ -9,13 +9,14 @@ RUN npm ci --prefer-offline --no-audit
 FROM base AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 ARG NEXT_PUBLIC_API_URL=https://admin.ejobs.bd
 ARG NEXT_PUBLIC_APP_URL=https://ejobs.bd
 ENV NEXT_PUBLIC_API_URL=https://admin.ejobs.bd
 ENV NEXT_PUBLIC_APP_URL=https://ejobs.bd
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN npm run build -- --webpack
 
 FROM base AS runner
 WORKDIR /app
