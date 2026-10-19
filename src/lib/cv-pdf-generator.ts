@@ -578,20 +578,21 @@ export function printCvHtml(html: string, pageCount: PageCount = 1) {
           s.style.alignSelf = "stretch";
         });
 
-        // Auto-scale or expand target height
+        // Auto-scale target height cleanly to strictly fit pageCount
         const currentHeight = Math.max(pageEl.scrollHeight, pageEl.offsetHeight);
         if (currentHeight > targetHeightPx + 3) {
           const ratio = (targetHeightPx - 4) / currentHeight;
-          if (ratio >= 0.65) {
-            (pageEl.style as any).zoom = `${ratio}`;
-            pageEl.style.transform = `scale(${ratio})`;
+          if (ratio >= 0.55 && ratio < 0.999) {
+            pageEl.style.transform = `scale(${ratio.toFixed(4)})`;
             pageEl.style.transformOrigin = "top left";
             pageEl.style.width = `${Math.round(210 / ratio)}mm`;
           }
         } else if (pageCount >= 2 && currentHeight < targetHeightPx * 0.85) {
-          const expandRatio = Math.min(1.22, (targetHeightPx * 0.94) / currentHeight);
+          const expandRatio = Math.min(1.20, (targetHeightPx * 0.94) / currentHeight);
           if (expandRatio > 1.03) {
-            (pageEl.style as any).zoom = `${expandRatio}`;
+            pageEl.style.transform = `scale(${expandRatio.toFixed(4)})`;
+            pageEl.style.transformOrigin = "top left";
+            pageEl.style.width = `${Math.round(210 / expandRatio)}mm`;
           }
         }
       }
@@ -806,20 +807,21 @@ export async function downloadCvAsPdf(
     const targetPages = pageCount;
     const fullCanvasHeight = Math.round(targetPages * A4_HEIGHT_PX);
 
-    // Check if target slightly overflows targetPages and auto-scale, or expand if underfilled
+    // Check if target overflows targetPages and auto-scale, or expand if underfilled
     const currentHeight = Math.max(target.scrollHeight, target.offsetHeight);
     if (currentHeight > fullCanvasHeight + 3) {
       const autoFitScale = Math.min(1, (fullCanvasHeight - 4) / currentHeight);
-      if (autoFitScale >= 0.65) {
-        (target.style as any).zoom = `${autoFitScale}`;
-        target.style.transform = `scale(${autoFitScale})`;
+      if (autoFitScale >= 0.55 && autoFitScale < 0.999) {
+        target.style.transform = `scale(${autoFitScale.toFixed(4)})`;
         target.style.transformOrigin = "top left";
         target.style.width = `${Math.round(794 / autoFitScale)}px`;
       }
     } else if (pageCount >= 2 && currentHeight < fullCanvasHeight * 0.85) {
-      const expandScale = Math.min(1.22, (fullCanvasHeight * 0.94) / currentHeight);
+      const expandScale = Math.min(1.20, (fullCanvasHeight * 0.94) / currentHeight);
       if (expandScale > 1.03) {
-        (target.style as any).zoom = `${expandScale}`;
+        target.style.transform = `scale(${expandScale.toFixed(4)})`;
+        target.style.transformOrigin = "top left";
+        target.style.width = `${Math.round(794 / expandScale)}px`;
       }
     }
 
